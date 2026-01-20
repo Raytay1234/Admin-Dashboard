@@ -1,33 +1,29 @@
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
-import  useTheme  from "../hooks/useTheme.js";
 import CountUp from "react-countup";
 
 export default function StatCard({ title, value, change }) {
-    const { theme } = useTheme();
-
     // Determine change styling
     let ChangeIcon = Minus;
-    let changeColor = "text-gray-500 bg-gray-100";
+    let changeColor = "text-gray-400 bg-gray-800";
 
     if (change > 0) {
         ChangeIcon = ArrowUp;
-        changeColor = "text-green-600 bg-green-100";
+        changeColor = "text-green-400 bg-gray-800";
     } else if (change < 0) {
         ChangeIcon = ArrowDown;
-        changeColor = "text-red-600 bg-red-100";
+        changeColor = "text-red-400 bg-gray-800";
     }
 
     return (
-        <div
-            className={`p-6 rounded-xl flex justify-between items-center shadow-md
-        ${theme === "dark" ? "bg-gray-800 text-gray-100" : "bg-white text-gray-800"}`}
+        <div className="p-6 rounded-xl flex justify-between items-center
+      shadow-md bg-gray-900 text-gray-100 transition
+      hover:bg-gray-800"
         >
             <div>
-                <p className="text-gray-400 dark:text-gray-300">{title}</p>
+                <p className="text-gray-400">{title}</p>
                 <h2 className="text-2xl font-bold">
                     ${Number(value).toLocaleString()}
                 </h2>
-
             </div>
 
             <span
