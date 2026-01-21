@@ -14,14 +14,10 @@ export default function Navbar({ toggleSidebar }) {
         >
           <Menu className="w-5 h-5" />
         </button>
-
         <h1 className="text-xl font-bold tracking-tight text-green-500">
           Duka
         </h1>
       </div>
-
-      {/* Right: Optional future actions */}
-      {/* Example: Notifications / Profile */}
     </nav>
   );
 }
