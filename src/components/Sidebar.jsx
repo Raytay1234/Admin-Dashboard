@@ -22,6 +22,7 @@ export default function Sidebar({ open = false, setOpen }) {
         { label: "Income", icon: FaDollarSign, path: "/income" },
         { label: "Comments", icon: FaUsers, path: "/comments" },
         {label :"Promote", icon: FaDollarSign, path: "/promote" },
+        {label:"Help", icon: FaUserCircle, path: "/help" }, 
     ];
 
     const userMenu = [

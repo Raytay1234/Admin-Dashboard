@@ -9,6 +9,7 @@ import Profile from "./pages/Profile.jsx";
 import Shop from "./pages/Shop.jsx";
 import Comments from "./pages/Comments.jsx";
 import Promote from "./pages/Promote.jsx";
+import Help from "./pages/Help.jsx";
 export default function App() {
   return (
     <AuthProvider>
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/comments" element={<Comments />} />
             <Route path="/promote" element={<Promote />} />
+            <Route path="/help" element={<Help />} />
           </Routes>
         </Router>
     </AuthProvider>
