@@ -1,108 +1,105 @@
-import Layout from "../components/Layout.jsx";
+import { useState } from "react";
 
 export default function Help() {
+  const [search, setSearch] = useState("");
+  const [ticket, setTicket] = useState({
+    email: "",
+    subject: "",
+    message: "",
+  });
+
   const faqs = [
-    {
-      q: "How do I add new products?",
-      a: "Go to Products → Add Product, fill in the details and save.",
-    },
-    {
-      q: "How can I promote a product?",
-      a: "Use the Promote tab to create promotional campaigns.",
-    },
-    {
-      q: "Why are my charts not displaying?",
-      a: "Ensure the container has a defined height and width.",
-    },
-    {
-      q: "How do I enable dark mode?",
-      a: "Use the theme toggle in the top navigation bar.",
-    },
+    { q: "How do I add new products?", a: "Go to Products → Add Product." },
+    { q: "How do I promote a product?", a: "Use the Promote page." },
+    { q: "Why are charts not showing?", a: "Ensure the container has a height." },
+    { q: "How do I enable dark mode?", a: "Use the toggle in the navbar." },
+    { q: "How do I contact support?", a: "Submit a support ticket below." },
   ];
 
+  const filteredFaqs = faqs.filter((f) =>
+    f.q.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const submitTicket = (e) => {
+    e.preventDefault();
+    alert("Support ticket submitted!");
+    setTicket({ email: "", subject: "", message: "" });
+  };
+
   return (
-    <Layout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Help & Support
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Find answers or get help using the dashboard
-          </p>
-        </div>
+    <div className="p-6 lg:p-8 space-y-10 text-gray-100">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold">Help & Support</h1>
+        <p className="text-gray-400">Search for answers or contact support</p>
+      </div>
 
-        {/* Quick Help Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <HelpCard
-            title="Documentation"
-            text="Learn how every feature works"
-            action="View Docs"
-          />
-          <HelpCard
-            title="Live Support"
-            text="Chat with our support team"
-            action="Start Chat"
-          />
-          <HelpCard
-            title="Report a Bug"
-            text="Let us know if something is broken"
-            action="Report"
-          />
-        </div>
+      {/* FAQ Search */}
+      <div>
+        <input
+          type="text"
+          placeholder="Search help topics..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full md:w-1/2 px-4 py-3 rounded-xl border dark:border-gray-700 bg-gray-900 text-gray-100 focus:ring-2 focus:ring-green-500 outline-none"
+        />
+      </div>
 
-        {/* FAQ Section */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4">Frequently Asked Questions</h2>
+      {/* FAQ Section */}
+      <div className="bg-gray-900 p-6 rounded-xl shadow-md">
+        <h2 className="text-lg font-semibold mb-4">FAQs</h2>
 
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <details
-                key={index}
-                className="group border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-              >
-                <summary className="cursor-pointer font-medium flex justify-between items-center">
-                  {faq.q}
-                  <span className="text-gray-400 group-open:rotate-180 transition">
-                    ▼
-                  </span>
-                </summary>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  {faq.a}
-                </p>
-              </details>
-            ))}
-          </div>
-        </div>
+        {filteredFaqs.length === 0 && (
+          <p className="text-sm text-gray-500">No results found.</p>
+        )}
 
-        {/* Contact Support */}
-        <div className="bg-green-600 text-white rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-semibold">Still need help?</h3>
-            <p className="text-sm opacity-90">
-              Contact our support team for further assistance
-            </p>
-          </div>
-          <button className="bg-white text-green-600 px-5 py-2 rounded-xl font-medium hover:bg-gray-100">
-            Contact Support
-          </button>
+        <div className="space-y-3">
+          {filteredFaqs.map((faq, idx) => (
+            <details key={idx} className="border dark:border-gray-700 rounded-lg p-4">
+              <summary className="cursor-pointer font-medium">{faq.q}</summary>
+              <p className="mt-2 text-sm text-gray-400">{faq.a}</p>
+            </details>
+          ))}
         </div>
       </div>
-    </Layout>
-  );
-}
 
-function HelpCard({ title, text, action }) {
-  return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md">
-      <h3 className="font-semibold text-lg mb-1">{title}</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {text}
-      </p>
-      <button className="text-green-600 font-medium hover:underline">
-        {action}
-      </button>
+      {/* Support Ticket */}
+      <div className="bg-gray-900 p-6 rounded-xl shadow-md">
+        <h2 className="text-lg font-semibold mb-4">Contact Support</h2>
+
+        <form onSubmit={submitTicket} className="space-y-4 max-w-xl">
+          <input
+            type="email"
+            required
+            placeholder="Your email"
+            value={ticket.email}
+            onChange={(e) => setTicket({ ...ticket, email: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border dark:border-gray-700 bg-gray-800 text-gray-100"
+          />
+
+          <input
+            type="text"
+            required
+            placeholder="Subject"
+            value={ticket.subject}
+            onChange={(e) => setTicket({ ...ticket, subject: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border dark:border-gray-700 bg-gray-800 text-gray-100"
+          />
+
+          <textarea
+            required
+            rows="4"
+            placeholder="Describe your issue"
+            value={ticket.message}
+            onChange={(e) => setTicket({ ...ticket, message: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border dark:border-gray-700 bg-gray-800 text-gray-100 resize-none"
+          />
+
+          <button className="bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700">
+            Submit Ticket
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

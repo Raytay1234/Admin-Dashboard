@@ -1,7 +1,6 @@
 // src/pages/Customers.jsx
 import { useState } from "react";
 import { motion as Motion } from "framer-motion";
-import Layout from "../components/Layout";
 
 // Mock customers generator
 const generateCustomers = () =>
@@ -21,7 +20,7 @@ export default function Customers() {
     const [customers] = useState(generateCustomers);
 
     return (
-        <Layout>
+        <div className="p-6 lg:p-8">
             <h1 className="text-2xl font-semibold mb-6 text-gray-100">
                 Customers
             </h1>
@@ -49,9 +48,7 @@ export default function Customers() {
                             />
                             <div className="flex-1 min-w-0">
                                 <p className="font-medium truncate">{c.name}</p>
-                                <p className="text-sm text-gray-400 truncate">
-                                    {c.email}
-                                </p>
+                                <p className="text-sm text-gray-400 truncate">{c.email}</p>
                             </div>
                         </div>
 
@@ -73,6 +70,6 @@ export default function Customers() {
                     </Motion.div>
                 ))}
             </div>
-        </Layout>
+        </div>
     );
 }

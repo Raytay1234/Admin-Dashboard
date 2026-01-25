@@ -1,7 +1,6 @@
 // src/pages/Comments.jsx
 import { useState } from "react";
 import { motion as Motion } from "framer-motion";
-import Layout from "../components/Layout.jsx";
 
 // Mock comments generator
 const generateComments = () =>
@@ -21,11 +20,14 @@ export default function Comments() {
   const [comments] = useState(generateComments);
 
   return (
-    <Layout>
-      <h1 className="text-2xl font-semibold mb-6 text-gray-100">
-        Comments
-      </h1>
+    <div className="p-6 lg:p-8 space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-100 mb-1">Comments</h1>
+        <p className="text-gray-400 text-sm">All user comments overview</p>
+      </div>
 
+      {/* Comments Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {comments.map((c, idx) => (
           <Motion.div
@@ -35,6 +37,7 @@ export default function Comments() {
             transition={{ delay: idx * 0.03 }}
             className="bg-gray-900 text-gray-100 rounded-xl p-4 shadow-md flex flex-col gap-3 cursor-pointer hover:shadow-lg transition"
           >
+            {/* Header: Avatar + Name + Status */}
             <div className="flex items-center gap-3">
               <img
                 src={c.avatar}
@@ -46,24 +49,23 @@ export default function Comments() {
                 <p className="text-gray-400 text-sm truncate">{c.email}</p>
               </div>
               <span
-                className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  c.status === "Approved"
+                className={`text-xs font-medium px-2 py-1 rounded-full ${c.status === "Approved"
                     ? "bg-green-900/40 text-green-400"
                     : "bg-yellow-900/40 text-yellow-400"
-                }`}
+                  }`}
               >
                 {c.status}
               </span>
             </div>
 
+            {/* Comment Body */}
             <p className="text-gray-300 text-sm">{c.comment}</p>
 
-            <div className="text-gray-500 text-xs self-end">
-              {c.date}
-            </div>
+            {/* Date */}
+            <div className="text-gray-500 text-xs self-end">{c.date}</div>
           </Motion.div>
         ))}
       </div>
-    </Layout>
+    </div>
   );
 }

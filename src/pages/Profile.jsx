@@ -1,97 +1,149 @@
 // src/pages/Profile.jsx
-import { useState } from "react";
-import { motion as Motion } from "framer-motion";
-import Layout from "../components/Layout.jsx";
+import { useContext, useState } from "react";
+import AuthContext from "../context/AuthContext.js";
 
 export default function Profile() {
-    // Mock user data
-    const [user, setUser] = useState({
-        name: "John Doe",
-        email: "john.doe@example.com",
-        joined: "Jan 15, 2023",
-        avatar: "https://i.pravatar.cc/150?img=3",
-        orders: 24,
-        totalSpent: 5490,
-    });
+    const { user, logout } = useContext(AuthContext);
+    const [editing, setEditing] = useState(false);
+    const [name, setName] = useState(user?.name || "");
+    const [email, setEmail] = useState(user?.email || "");
+    const [avatar, setAvatar] = useState(user?.avatar || "");
+    const [password, setPassword] = useState("");
 
-    const formatCurrency = (val) =>
-        new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
+    const joinDate = user?.joinedAt || new Date().toISOString().split("T")[0];
+
+    if (!user) {
+        return (
+            <div className="p-6 text-gray-100">
+                <p>You are not logged in.</p>
+            </div>
+        );
+    }
+
+    const handleSave = () => {
+        const updatedUser = { ...user, name, email, avatar };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setEditing(false);
+        alert("Profile updated successfully!");
+    };
 
     return (
-        <Layout>
-            <div className="flex flex-col lg:flex-row gap-6">
-                {/* Left: Profile Info */}
-                <div className="lg:w-1/3 bg-gray-900 text-gray-100 rounded-xl p-6 shadow-md">
-                    <div className="flex flex-col items-center gap-4">
-                        <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-32 h-32 rounded-full object-cover border-4 border-green-600"
-                        />
-                        <h2 className="text-2xl font-bold">{user.name}</h2>
-                        <p className="text-gray-400">{user.email}</p>
-                        <p className="text-gray-400 text-sm">Joined {user.joined}</p>
-                    </div>
+        <div className="p-6 lg:p-8 space-y-6 text-gray-100">
+            <h1 className="text-3xl font-bold mb-6">Profile</h1>
 
-                    <div className="mt-6 flex justify-around">
-                        <div className="flex flex-col items-center">
-                            <span className="text-lg font-semibold">{user.orders}</span>
-                            <span className="text-gray-400 text-sm">Orders</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <span className="text-lg font-semibold">{formatCurrency(user.totalSpent)}</span>
-                            <span className="text-gray-400 text-sm">Total Spent</span>
-                        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* LEFT: Avatar & Basic Info */}
+                <div className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col items-center">
+                    <div className="relative mb-4">
+                        <img
+                            src={avatar || `https://i.pravatar.cc/150?u=${email}`}
+                            alt={name}
+                            className="w-32 h-32 rounded-full border-4 border-green-600 object-cover"
+                        />
                     </div>
+                    {editing && (
+                        <input
+                            type="text"
+                            placeholder="Avatar URL"
+                            value={avatar}
+                            onChange={(e) => setAvatar(e.target.value)}
+                            className="w-full p-2 mb-2 rounded-md text-black"
+                        />
+                    )}
+                    <h2 className="text-xl font-semibold">{name}</h2>
+                    <p className="text-gray-400">{email || "No email set"}</p>
+                    <p className="text-gray-500 mt-1">
+                        Role: <span className="font-medium">{user.role}</span>
+                    </p>
+                    <p className="text-gray-500 mt-1">
+                        Joined: <span className="font-medium">{joinDate}</span>
+                    </p>
                 </div>
 
-                {/* Right: Editable Profile Form */}
-                <div className="flex-1 bg-gray-900 text-gray-100 rounded-xl p-6 shadow-md">
-                    <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
-                    <form className="flex flex-col gap-4">
-                        <label className="flex flex-col">
-                            <span className="text-gray-400 text-sm mb-1">Full Name</span>
+                {/* RIGHT: Editable Info & Actions */}
+                <div className="bg-gray-900 p-6 rounded-xl shadow-md">
+                    <h3 className="text-lg font-semibold mb-4">Account Information</h3>
+
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <label className="block text-gray-400 mb-1">Name</label>
                             <input
                                 type="text"
-                                value={user.name}
-                                onChange={(e) => setUser({ ...user, name: e.target.value })}
-                                className="p-2 rounded-lg bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:border-green-500"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                disabled={!editing}
+                                className={`w-full p-2 rounded-md ${editing ? "text-black bg-gray-100" : "bg-gray-800 text-gray-300"
+                                    }`}
                             />
-                        </label>
+                        </div>
 
-                        <label className="flex flex-col">
-                            <span className="text-gray-400 text-sm mb-1">Email</span>
+                        <div>
+                            <label className="block text-gray-400 mb-1">Email</label>
                             <input
                                 type="email"
-                                value={user.email}
-                                onChange={(e) => setUser({ ...user, email: e.target.value })}
-                                className="p-2 rounded-lg bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:border-green-500"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={!editing}
+                                className={`w-full p-2 rounded-md ${editing ? "text-black bg-gray-100" : "bg-gray-800 text-gray-300"
+                                    }`}
                             />
-                        </label>
+                        </div>
 
-                        <label className="flex flex-col">
-                            <span className="text-gray-400 text-sm mb-1">Avatar URL</span>
+                        <div>
+                            <label className="block text-gray-400 mb-1">Password</label>
                             <input
-                                type="text"
-                                value={user.avatar}
-                                onChange={(e) => setUser({ ...user, avatar: e.target.value })}
-                                className="p-2 rounded-lg bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:border-green-500"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Enter new password"
+                                disabled={!editing}
+                                className={`w-full p-2 rounded-md ${editing ? "text-black bg-gray-100" : "bg-gray-800 text-gray-300"
+                                    }`}
                             />
-                        </label>
+                        </div>
 
-                        <button
-                            type="submit"
-                            className="mt-4 py-2 px-4 rounded-lg bg-green-600 text-gray-100 font-medium hover:bg-green-500 transition"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                alert("Profile updated!");
-                            }}
-                        >
-                            Save Changes
-                        </button>
-                    </form>
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 mt-4">
+                            {editing ? (
+                                <>
+                                    <button
+                                        onClick={handleSave}
+                                        className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
+                                    >
+                                        Save Changes
+                                    </button>
+                                    <button
+                                        onClick={() => setEditing(false)}
+                                        className="px-4 py-2 bg-gray-700 rounded-md text-white hover:bg-gray-600"
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            setName(user?.name || "");
+                                            setEmail(user?.email || "");
+                                            setAvatar(user?.avatar || "");
+                                            setEditing(true);
+                                        }}
+                                        className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
+                                    >
+                                        Edit Profile
+                                    </button>
+                                    <button
+                                        onClick={logout}
+                                        className="px-4 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </Layout>
+        </div>
     );
 }

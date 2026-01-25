@@ -1,6 +1,5 @@
 // src/pages/Products.jsx
 import { useState } from "react";
-import Layout from "../components/Layout.jsx";
 import { productsData } from "../data/products.js";
 
 export default function Products() {
@@ -14,10 +13,8 @@ export default function Products() {
     }).format(value);
 
   return (
-    <Layout>
-      <h1 className="text-2xl font-semibold mb-6 text-gray-100">
-        Products
-      </h1>
+    <div className="p-6 lg:p-8">
+      <h1 className="text-2xl font-semibold mb-6 text-gray-100">Products</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((p) => (
@@ -34,33 +31,19 @@ export default function Products() {
             />
 
             <div className="flex flex-col gap-1 min-w-0">
-              <p className="font-semibold text-lg truncate">
-                {p.name}
-              </p>
-
-              <span className="text-sm text-gray-400 truncate">
-                {p.category}
-              </span>
-
-              <span className="font-medium">
-                {formatPrice(p.price)}
-              </span>
-
+              <p className="font-semibold text-lg truncate">{p.name}</p>
+              <span className="text-sm text-gray-400 truncate">{p.category}</span>
+              <span className="font-medium">{formatPrice(p.price)}</span>
               <span
-                className={`text-sm font-medium ${
-                  p.stock > 0
-                    ? "text-green-400"
-                    : "text-red-400"
-                }`}
+                className={`text-sm font-medium ${p.stock > 0 ? "text-green-400" : "text-red-400"
+                  }`}
               >
-                {p.stock > 0
-                  ? `${p.stock} in stock`
-                  : "Out of stock"}
+                {p.stock > 0 ? `${p.stock} in stock` : "Out of stock"}
               </span>
             </div>
           </div>
         ))}
       </div>
-    </Layout>
+    </div>
   );
 }
