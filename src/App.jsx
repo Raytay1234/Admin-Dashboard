@@ -10,6 +10,7 @@ import Profile from "./pages/Profile.jsx";
 import Comments from "./pages/Comments.jsx";
 import Promote from "./pages/Promote.jsx";
 import Help from "./pages/Help.jsx";
+import Orders from "./pages/Orders.jsx";
 
 import CreateTicket from "./pages/CreateTicket.jsx";
 import Tickets from "./pages/Tickets.jsx";
@@ -22,6 +23,7 @@ import Settings from "./pages/Settings.jsx";
 
 import ProtectedRoute from "./context/ProtectedRoute.jsx";
 import AdminRoute from "./context/AdminRoute.jsx";
+
 
 import Layout from "./components/Layout.jsx";
 
@@ -70,6 +72,16 @@ export default function App() {
             <ProtectedRoute>
               <Layout>
                 <Income />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Orders />
               </Layout>
             </ProtectedRoute>
           }

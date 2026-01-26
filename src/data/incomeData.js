@@ -1,6 +1,5 @@
 // src/data/incomeData.js
 
-// Mocked detailed financial data for a full year
 export const incomeData = [
     { month: "Jan", income: 45000, expenses: 32000, profit: 13000, orders: 120, newCustomers: 35, refunds: 4 },
     { month: "Feb", income: 52000, expenses: 30000, profit: 22000, orders: 135, newCustomers: 42, refunds: 3 },
@@ -16,18 +15,37 @@ export const incomeData = [
     { month: "Dec", income: 70000, expenses: 39000, profit: 31000, orders: 172, newCustomers: 62, refunds: 6 },
 ];
 
-// Optionally, create a helper function to compute totals for metrics cards
-export const getYearlyTotals = () => {
-    return incomeData.reduce(
-        (acc, curr) => {
-            acc.income += curr.income;
-            acc.expenses += curr.expenses;
-            acc.profit += curr.profit;
-            acc.orders += curr.orders;
-            acc.newCustomers += curr.newCustomers;
-            acc.refunds += curr.refunds;
+// Totals for cards
+export const getYearlyTotals = () =>
+    incomeData.reduce(
+        (acc, cur) => {
+            acc.income += cur.income;
+            acc.expenses += cur.expenses;
+            acc.profit += cur.profit;
+            acc.orders += cur.orders;
+            acc.newCustomers += cur.newCustomers;
+            acc.refunds += cur.refunds;
             return acc;
         },
         { income: 0, expenses: 0, profit: 0, orders: 0, newCustomers: 0, refunds: 0 }
     );
+
+// Monthly comparison (current month vs previous month)
+export const getMonthlyComparison = () => {
+    const now = new Date();
+    const monthIndex = now.getMonth();
+    const current = incomeData[monthIndex] || incomeData[0];
+    const previous = incomeData[monthIndex - 1] || incomeData[0];
+
+    return {
+        income: Math.round(((current.income - previous.income) / previous.income) * 100),
+        customers: Math.round(((current.newCustomers - previous.newCustomers) / previous.newCustomers) * 100),
+    };
+};
+
+// Year-to-date income
+export const getYearToDateIncome = () => {
+    const now = new Date();
+    const monthIndex = now.getMonth();
+    return incomeData.slice(0, monthIndex + 1).reduce((sum, m) => sum + m.income, 0);
 };

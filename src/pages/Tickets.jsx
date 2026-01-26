@@ -6,8 +6,12 @@ export default function Tickets() {
 
   return (
     <div className="p-6 lg:p-8 space-y-6 text-gray-100">
-      <h1 className="text-2xl font-bold mb-4">All Tickets</h1>
-      <TicketTable tickets={tickets} onUpdate={updateStatus} />
+      <h1 className="text-2xl font-bold">All Tickets</h1>
+
+      <TicketTable
+        tickets={tickets}
+        onUpdate={updateStatus}
+      />
     </div>
   );
 }

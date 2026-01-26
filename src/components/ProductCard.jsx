@@ -1,38 +1,30 @@
-// src/components/ProductCard.jsx
+import useCart from "../hooks/useCart.js";
+import { ShoppingCart } from "lucide-react";
+
 export default function ProductCard({ product }) {
-  const formatPrice = (value) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(value);
+  const { addToCart } = useCart();
 
   return (
-    <div
-      className="
-        bg-gray-900 text-gray-100 rounded-xl shadow-md
-        p-4 flex flex-col gap-3
-        transition-transform transform hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl
-        cursor-pointer
-      "
-    >
-      <img
-        src={product.image}
-        alt={product.name}
-        className="w-full h-44 object-cover rounded-lg"
-      />
+    <div className="bg-gray-900 rounded-xl shadow hover:shadow-lg transition overflow-hidden group">
+      <div className="h-40 bg-gray-800 flex items-center justify-center text-gray-500">
+        Image
+      </div>
 
-      <div className="flex flex-col gap-1 min-w-0">
-        <p className="font-semibold text-lg truncate">{product.name}</p>
-        <span className="text-sm text-gray-400 truncate">{product.category}</span>
-        <span className="font-medium">{formatPrice(product.price)}</span>
-        <span
-          className={`text-sm font-medium ${
-            product.stock > 0 ? "text-green-400" : "text-red-400"
-          }`}
-        >
-          {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
-        </span>
+      <div className="p-4 space-y-2">
+        <h3 className="text-gray-100 font-semibold">{product.name}</h3>
+        <p className="text-sm text-gray-400">{product.category}</p>
+
+        <div className="flex items-center justify-between">
+          <span className="text-green-500 font-bold">${product.price}</span>
+
+          <button
+            onClick={() => addToCart(product)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded text-sm transition"
+          >
+            <ShoppingCart size={14} />
+            Add
+          </button>
+        </div>
       </div>
     </div>
   );

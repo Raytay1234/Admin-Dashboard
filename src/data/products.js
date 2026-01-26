@@ -64,4 +64,22 @@ export const productsData = [
         stock: 15,
         image: "https://picsum.photos/seed/H/100/100",
     },
+
+    {
+        id: "I",
+        name: "Component Pro",
+        category: "Component",
+        price: 3450,
+        stock: 7,
+        image: "https://picsum.photos/seed/I/100/100",
+    },
+    {
+        id: "J",
+        name: "Plugin Premium",
+        category: "Plugin",
+        price: 5800,
+        stock: 2,
+        image: "https://picsum.photos/seed/J/100/100",
+    }
+
 ];

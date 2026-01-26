@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import AuthProvider from "./context/AuthProvider.jsx";
 import { ThemeProvider } from "./context/ThemeProvider.jsx";
 import { TicketProvider } from "./context/TicketContext.jsx";
+import { CartProvider } from "./context/CartContext.jsx";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -11,7 +12,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <AuthProvider>
       <ThemeProvider>
         <TicketProvider>
-          <App />
+          <CartProvider>
+            <App />
+          </CartProvider>
         </TicketProvider>
       </ThemeProvider>
     </AuthProvider>

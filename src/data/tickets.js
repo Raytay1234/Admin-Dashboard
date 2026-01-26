@@ -29,4 +29,24 @@ export const ticketsData = [
     createdAt: "2026-01-12",
     user: "mike@example.com",
   },
+  {
+    id: "TCK-1004",
+    subject: "Refund request",
+    category: "Payments",
+    priority: "Low",
+    status: "Open",
+    message: "I would like to request a refund for my last order.",
+    createdAt: "2026-01-10",
+    user: "lisa@example.com"
+  },
+  {
+    id: "TCK-1005",
+    subject: "Shipping delay",
+    category: "Shipping",
+    priority: "Medium",
+    status: "Pending",
+    message: "My order hasn’t arrived yet.",
+    createdAt: "2026-01-08",
+    user: "mike@example.com"
+  }
 ];

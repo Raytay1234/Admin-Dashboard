@@ -18,6 +18,7 @@ export default function Sidebar() {
         { label: "Customers", icon: FaUsers, path: "/customers" },
         { label: "Income", icon: FaDollarSign, path: "/income" },
         { label: "Promote", icon: FaDollarSign, path: "/promote" },
+        { label: "Orders", icon: FaShoppingCart, path: "/orders" },
     ];
 
     const userMenu = [

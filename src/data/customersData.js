@@ -5,4 +5,5 @@ export const customersData = [
   { id: 3, name: "Charlie Lee", email: "charlie@example.com", orders: 15, totalSpent: 2100 },
   { id: 4, name: "Diana Prince", email: "diana@example.com", orders: 5, totalSpent: 430 },
   { id: 5, name: "Evan White", email: "evan@example.com", orders: 9, totalSpent: 1275 },
+  { id: 6, name: "Fiona Green", email: "fiona@example.com", orders: 11, totalSpent: 1850 },
 ];
