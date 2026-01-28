@@ -1,20 +1,21 @@
 // src/data/productsData.js
-export const productsData = [
+
+const baseProducts = [
     {
         id: "A",
         name: "UI Kit Pro",
         category: "UI Kit",
         price: 5461,
-        stock: 12, // in stock
-        image: "https://picsum.photos/seed/A/100/100",
+        stock: 12,
+        image: "https://picsum.photos/seed/A/300/200",
     },
     {
         id: "B",
         name: "UX Starter Kit",
         category: "UX Kit",
         price: 3240,
-        stock: 0, // out of stock
-        image: "https://picsum.photos/seed/B/100/100",
+        stock: 0,
+        image: "https://picsum.photos/seed/B/300/200",
     },
     {
         id: "C",
@@ -22,7 +23,7 @@ export const productsData = [
         category: "Template",
         price: 4120,
         stock: 5,
-        image: "https://picsum.photos/seed/C/100/100",
+        image: "https://picsum.photos/seed/C/300/200",
     },
     {
         id: "D",
@@ -30,7 +31,7 @@ export const productsData = [
         category: "Component",
         price: 2899,
         stock: 0,
-        image: "https://picsum.photos/seed/D/100/100",
+        image: "https://picsum.photos/seed/D/300/200",
     },
     {
         id: "E",
@@ -38,48 +39,20 @@ export const productsData = [
         category: "Plugin",
         price: 5200,
         stock: 3,
-        image: "https://picsum.photos/seed/E/100/100",
+        image: "https://picsum.photos/seed/E/300/200",
     },
-    {
-        id: "F",
-        name: "Template Deluxe",
-        category: "Template",   
-        price: 2980,
-        stock: 8,
-        image: "https://picsum.photos/seed/F/100/100",
-    },
-    {
-        id: "G",
-        name: "UX Kit Advanced",
-        category: "UX Kit",
-        price: 4550,
-        stock: 0,
-        image: "https://picsum.photos/seed/G/100/100",
-    },
-    {
-        id: "H",
-        name: "UI Kit Ultimate",
-        category: "UI Kit",
-        price: 6120,
-        stock: 15,
-        image: "https://picsum.photos/seed/H/100/100",
-    },
-
-    {
-        id: "I",
-        name: "Component Pro",
-        category: "Component",
-        price: 3450,
-        stock: 7,
-        image: "https://picsum.photos/seed/I/100/100",
-    },
-    {
-        id: "J",
-        name: "Plugin Premium",
-        category: "Plugin",
-        price: 5800,
-        stock: 2,
-        image: "https://picsum.photos/seed/J/100/100",
-    }
-
 ];
+
+// Generate 100 products
+export const productsData = Array.from({ length: 100 }, (_, i) => {
+    const base = baseProducts[i % baseProducts.length];
+
+    return {
+        ...base,
+        id: `${base.id}-${i}`,
+        name: `${base.name} ${i + 1}`,
+        price: base.price + i * 20,
+        stock: i % 4 === 0 ? 0 : (i % 15) + 1,
+        image: `https://picsum.photos/seed/${base.id}${i}/300/200`,
+    };
+});

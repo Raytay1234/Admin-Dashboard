@@ -1,4 +1,3 @@
-// src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard.jsx";
@@ -24,8 +23,10 @@ import Settings from "./pages/Settings.jsx";
 import ProtectedRoute from "./context/ProtectedRoute.jsx";
 import AdminRoute from "./context/AdminRoute.jsx";
 
-
 import Layout from "./components/Layout.jsx";
+
+// Dashboard Context
+import { DashboardProvider } from "./context/DashboardProvider.jsx";
 
 export default function App() {
   return (
@@ -40,9 +41,11 @@ export default function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
+              <DashboardProvider>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </DashboardProvider>
             </ProtectedRoute>
           }
         />

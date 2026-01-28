@@ -30,13 +30,13 @@ export default function IncomePro() {
     }).format(val);
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      {/* Page Header */}
+    <div className="p-6 lg:p-8 space-y-8 bg-gray-900 min-h-screen">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-gray-100 mb-1">
-          Income Dashboard
-        </h1>
-        <p className="text-gray-400 text-sm">Overview of your store performance</p>
+        <h1 className="text-3xl font-bold text-white mb-1">Income Dashboard</h1>
+        <p className="text-gray-400 text-sm">
+          Overview of your store's revenue and performance
+        </p>
       </div>
 
       {/* Metrics Cards */}
@@ -47,14 +47,14 @@ export default function IncomePro() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
-            className="p-4 rounded-xl shadow-sm flex flex-col gap-3
-              bg-gray-900 text-gray-100
-              transition transform hover:-translate-y-1 hover:shadow-lg hover:bg-gray-800"
+            className="p-6 rounded-2xl shadow-lg flex flex-col gap-3
+              bg-gray-800 text-gray-100
+              transition transform hover:-translate-y-1 hover:shadow-2xl hover:bg-gray-700"
           >
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-400">{m.title}</span>
               <span
-                className={`flex items-center gap-1 text-xs font-medium ${m.trend >= 0 ? "text-green-400" : "text-red-400"
+                className={`flex items-center gap-1 text-xs font-semibold ${m.trend >= 0 ? "text-green-400" : "text-red-400"
                   }`}
               >
                 {m.trend >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
@@ -62,15 +62,21 @@ export default function IncomePro() {
               </span>
             </div>
 
-            <span className="text-xl font-semibold">
+            <span className="text-2xl font-bold">
               {m.type === "currency" ? formatCurrency(m.value) : m.value}
             </span>
 
             {/* Mini Sparkline */}
-            <div className="h-10">
+            <div className="h-12">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={incomeData}>
-                  <Line type="monotone" dataKey="income" stroke="#22c55e" strokeWidth={2} dot={false} />
+                  <Line
+                    type="monotone"
+                    dataKey="income"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    dot={false}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -79,9 +85,9 @@ export default function IncomePro() {
       </div>
 
       {/* Full Monthly Revenue Chart */}
-      <div className="p-4 rounded-xl shadow-sm bg-gray-900 text-gray-100">
+      <div className="p-6 rounded-2xl shadow-lg bg-gray-800 text-gray-100">
         <h2 className="font-semibold text-lg mb-4">Monthly Revenue</h2>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={350}>
           <LineChart data={incomeData} margin={{ top: 10, right: 20, bottom: 5, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis dataKey="month" stroke="#9ca3af" />
@@ -97,7 +103,13 @@ export default function IncomePro() {
               }}
               formatter={(val) => `$${val.toLocaleString()}`}
             />
-            <Line type="monotone" dataKey="income" stroke="#22c55e" strokeWidth={3} dot={{ r: 4 }} />
+            <Line
+              type="monotone"
+              dataKey="income"
+              stroke="#22c55e"
+              strokeWidth={3}
+              dot={{ r: 4 }}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>

@@ -1,5 +1,6 @@
 // src/data/incomeData.js
 
+// Base monthly data
 export const incomeData = [
     { month: "Jan", income: 45000, expenses: 32000, profit: 13000, orders: 120, newCustomers: 35, refunds: 4 },
     { month: "Feb", income: 52000, expenses: 30000, profit: 22000, orders: 135, newCustomers: 42, refunds: 3 },
@@ -15,7 +16,7 @@ export const incomeData = [
     { month: "Dec", income: 70000, expenses: 39000, profit: 31000, orders: 172, newCustomers: 62, refunds: 6 },
 ];
 
-// Totals for cards
+// --- Totals for yearly cards ---
 export const getYearlyTotals = () =>
     incomeData.reduce(
         (acc, cur) => {
@@ -30,22 +31,33 @@ export const getYearlyTotals = () =>
         { income: 0, expenses: 0, profit: 0, orders: 0, newCustomers: 0, refunds: 0 }
     );
 
-// Monthly comparison (current month vs previous month)
+// --- Monthly comparison (current vs previous month) ---
 export const getMonthlyComparison = () => {
     const now = new Date();
     const monthIndex = now.getMonth();
     const current = incomeData[monthIndex] || incomeData[0];
-    const previous = incomeData[monthIndex - 1] || incomeData[0];
+    const previous = monthIndex === 0 ? incomeData[11] : incomeData[monthIndex - 1];
 
     return {
-        income: Math.round(((current.income - previous.income) / previous.income) * 100),
-        customers: Math.round(((current.newCustomers - previous.newCustomers) / previous.newCustomers) * 100),
+        incomeChange: Math.round(((current.income - previous.income) / previous.income) * 100),
+        customersChange: Math.round(((current.newCustomers - previous.newCustomers) / previous.newCustomers) * 100),
     };
 };
 
-// Year-to-date income
+// --- Year-to-date income ---
 export const getYearToDateIncome = () => {
     const now = new Date();
     const monthIndex = now.getMonth();
     return incomeData.slice(0, monthIndex + 1).reduce((sum, m) => sum + m.income, 0);
 };
+
+// --- Helper: Randomize monthly data for live updates ---
+export const randomizeMonthlyData = () =>
+    incomeData.map((m) => ({
+        ...m,
+        income: m.income + Math.floor(Math.random() * 5000 - 2500), // ±2500
+        newCustomers: m.newCustomers + Math.floor(Math.random() * 5 - 2), // ±2
+        orders: m.orders + Math.floor(Math.random() * 5 - 2),
+        refunds: m.refunds + Math.floor(Math.random() * 2 - 1),
+        profit: m.income - m.expenses,
+    }));
