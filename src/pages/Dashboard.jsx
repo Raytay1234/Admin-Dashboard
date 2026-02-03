@@ -1,30 +1,28 @@
-// src/pages/Dashboard.jsx
 import { useContext, useMemo, useState } from "react";
 import { motion as Motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 import StatCard from "../components/StatCard.jsx";
 import IncomeChart from "../components/IncomeChart.jsx";
-import { filterIncomeData, getYearlyTotals } from "../data/incomeData.js";
-import { productsData } from "../data/products.js";
 import DashboardContext from "../context/DashboardContext.js";
-import useTickets from "../hooks/useTickets.js"; // ✅ use shared tickets hook
+import useTickets from "../hooks/useTickets.js";
+import ProductContext from "../context/ProductProvider.jsx"; // ✅ import product context
+import { filterIncomeData, getYearlyTotals } from "../data/incomeData.js";
 
 const PERIODS = ["daily", "weekly", "monthly", "yearly"];
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const { ordersToday } = useContext(DashboardContext);
-
-    const { tickets } = useTickets(); // ✅ get tickets
+    const { tickets } = useTickets();
     const openTickets = tickets.filter((t) => t.status === "Open").length;
+
+    const { products, loading: productsLoading, error: productsError } = useContext(ProductContext); // ✅ use API products
 
     const [period, setPeriod] = useState("monthly");
 
-    // Filtered chart data
     const filteredChartData = useMemo(() => filterIncomeData(period), [period]);
 
-    // Stats calculation
     const stats = useMemo(() => {
         if (period === "yearly") return getYearlyTotals();
 
@@ -40,10 +38,7 @@ export default function Dashboard() {
     }, [filteredChartData, period]);
 
     const formatCurrency = (val) =>
-        new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-        }).format(val);
+        new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
 
     return (
         <div className="p-6 lg:p-8 space-y-8 bg-gray-900 min-h-screen">
@@ -72,18 +67,10 @@ export default function Dashboard() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title={`Income (${period})`}
-                    value={stats.income}
-                    change={12} // Optional trend
-                />
-                <StatCard
-                    title={`New Customers (${period})`}
-                    value={stats.newCustomers}
-                    change={5} // Optional trend
-                />
+                <StatCard title={`Income (${period})`} value={stats.income} change={12} />
+                <StatCard title={`New Customers (${period})`} value={stats.newCustomers} change={5} />
                 <StatCard title="Orders Today" value={ordersToday} change={0} />
-                <StatCard title="Open Tickets" value={openTickets} change={0} /> {/* live tickets */}
+                <StatCard title="Open Tickets" value={openTickets} change={0} />
             </div>
 
             {/* Main Grid */}
@@ -123,10 +110,7 @@ export default function Dashboard() {
                             </thead>
                             <tbody>
                                 {filteredChartData.slice(-5).map((m) => (
-                                    <tr
-                                        key={m.month}
-                                        className="bg-gray-700 hover:bg-gray-600 cursor-pointer"
-                                    >
+                                    <tr key={m.month} className="bg-gray-700 hover:bg-gray-600 cursor-pointer">
                                         <td className="px-4 py-2">{m.month}</td>
                                         <td className="px-4 py-2">{m.orders}</td>
                                         <td className="px-4 py-2">{formatCurrency(m.income)}</td>
@@ -137,21 +121,25 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Right Column */}
+                {/* Right Column - Popular Products */}
                 <div className="bg-gray-800 p-6 rounded-2xl shadow-lg lg:sticky lg:top-24">
                     <h3 className="text-lg font-semibold text-white mb-4">Popular Products</h3>
+
+                    {productsLoading && <p className="text-gray-300">Loading products...</p>}
+                    {productsError && <p className="text-red-400">Error: {productsError}</p>}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {productsData.slice(0, 4).map((p) => (
+                        {products.slice(0, 4).map((p) => (
                             <div
                                 key={p.id}
                                 className="bg-gray-700 p-3 rounded-xl hover:scale-105 transition"
                             >
                                 <img
                                     src={p.image}
-                                    alt={p.name}
+                                    alt={p.title}
                                     className="w-full h-24 object-cover rounded-lg mb-2"
                                 />
-                                <h4 className="text-white text-sm font-medium truncate">{p.name}</h4>
+                                <h4 className="text-white text-sm font-medium truncate">{p.title}</h4>
                                 <p className="text-gray-300 text-xs">{p.category}</p>
                                 <p className="text-green-400 font-semibold mt-1">
                                     ${p.price.toLocaleString()}

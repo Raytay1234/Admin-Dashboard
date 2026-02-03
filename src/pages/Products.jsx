@@ -1,20 +1,51 @@
+// src/pages/Products.jsx
 import { useState, useEffect, useRef, useMemo } from "react";
-import { productsData } from "../data/products.js";
 import ProductSkeleton from "../components/ProductSkeleton.jsx";
 import ScrollToTopButton from "../components/ScrollToTopButton.jsx";
 
 const ITEMS_PER_LOAD = 6;
+const API_URL = "https://fakestoreapi.com/products"; // Example API, replace with your API
 
 export default function Products() {
   const scrollRef = useRef(null);
   const loaderRef = useRef(null);
 
+  const [products, setProducts] = useState([]);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true); // For initial API fetch
+  const [error, setError] = useState(null);
 
   // Filter states
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setFetching(true);
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Failed to fetch products");
+        const data = await res.json();
+
+        // Add `stock` field for demonstration
+        const productsWithStock = data.map((p) => ({
+          ...p,
+          stock: Math.floor(Math.random() * 20), // random stock 0-19
+        }));
+
+        setProducts(productsWithStock);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Format price helper
   const formatPrice = (value) =>
@@ -24,9 +55,9 @@ export default function Products() {
       maximumFractionDigits: 0,
     }).format(value);
 
-  // Filtered products (memoized)
+  // Filtered products
   const filteredProducts = useMemo(() => {
-    return productsData.filter((p) => {
+    return products.filter((p) => {
       const categoryMatch =
         categoryFilter === "All" || p.category === categoryFilter;
       const stockMatch =
@@ -35,14 +66,11 @@ export default function Products() {
         (stockFilter === "OutOfStock" && p.stock === 0);
       return categoryMatch && stockMatch;
     });
-  }, [categoryFilter, stockFilter]);
+  }, [products, categoryFilter, stockFilter]);
 
-  // Reset visibleCount asynchronously when filters change (ESLint-friendly)
+  // Reset visibleCount when filters change
   useEffect(() => {
-    const id = setTimeout(() => {
-      setVisibleCount(ITEMS_PER_LOAD);
-    }, 0);
-    return () => clearTimeout(id);
+    setVisibleCount(ITEMS_PER_LOAD);
   }, [categoryFilter, stockFilter]);
 
   // Infinite scroll
@@ -72,14 +100,22 @@ export default function Products() {
     return () => observer.disconnect();
   }, [loading, visibleCount, filteredProducts]);
 
-  // Get unique categories for filter dropdown
-  const categories = ["All", ...new Set(productsData.map((p) => p.category))];
+  // Unique categories
+  const categories = ["All", ...new Set(products.map((p) => p.category))];
+
+  if (fetching)
+    return (
+      <div className="p-6 lg:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: ITEMS_PER_LOAD }).map((_, i) => (
+          <ProductSkeleton key={i} />
+        ))}
+      </div>
+    );
+
+  if (error) return <p className="text-red-500 p-6">{error}</p>;
 
   return (
-    <div
-      ref={scrollRef}
-      className="h-full overflow-y-auto p-6 lg:p-8 relative"
-    >
+    <div ref={scrollRef} className="h-full overflow-y-auto p-6 lg:p-8 relative">
       <h1 className="text-2xl font-semibold mb-4 text-gray-100">Products</h1>
 
       {/* Filters */}
@@ -118,11 +154,11 @@ export default function Products() {
           >
             <img
               src={p.image}
-              alt={p.name}
+              alt={p.title || p.name}
               className="w-full h-40 object-cover rounded-lg"
             />
             <div className="flex flex-col gap-1 min-w-0">
-              <p className="font-semibold text-lg truncate">{p.name}</p>
+              <p className="font-semibold text-lg truncate">{p.title || p.name}</p>
               <span className="text-sm text-gray-400 truncate">{p.category}</span>
               <span className="font-medium">{formatPrice(p.price)}</span>
               <span
@@ -135,19 +171,16 @@ export default function Products() {
           </div>
         ))}
 
-        {/* Skeleton loaders */}
         {loading &&
           Array.from({ length: ITEMS_PER_LOAD }).map((_, i) => (
             <ProductSkeleton key={`skeleton-${i}`} />
           ))}
       </div>
 
-      {/* Infinite scroll trigger */}
       {visibleCount < filteredProducts.length && (
         <div ref={loaderRef} className="h-12 mt-10" />
       )}
 
-      {/* Scroll to top button (top-left) */}
       <ScrollToTopButton scrollRef={scrollRef} />
     </div>
   );

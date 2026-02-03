@@ -1,46 +1,95 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import ShopSidebar from "../components/ShopSidebar";
 import ProductCard from "../components/ProductCard";
 import ProductSkeleton from "../components/ProductSkeleton";
-import { productsData } from "../data/products";
 import { Search } from "lucide-react";
 
+const ITEMS_PER_LOAD = 6;
+
 export default function Shop() {
+  const [products, setProducts] = useState([]);       // Products from API
+  const [loading, setLoading] = useState(true);       // API loading
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("name");
-  const [loading] = useState(false);
+  const loaderRef = useRef(null);
 
-  const categories = [
-    "All",
-    "UI Kit",
-    "UX Kit",
-    "Template",
-    "Plugin",
-    "Component",
-  ];
+  // Categories for filter pills
+  const categories = ["All", "UI Kit", "UX Kit", "Template", "Plugin", "Component"];
 
-  const products = useMemo(() => {
-    let data = [...productsData];
+  // Fetch products from mock API
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        // Example API - replace with your real endpoint
+        const res = await fetch("https://fakestoreapi.com/products");
+        const data = await res.json();
 
-    if (category !== "All") {
-      data = data.filter((p) => p.category === category);
+        // Map API data to match your ProductCard props
+        const formatted = data.map((p, i) => ({
+          id: p.id,
+          name: p.title || p.name,
+          price: Math.floor(p.price || 50) * 100,
+          category: p.category || "Template",
+          stock: Math.floor(Math.random() * 10), // Random stock for demo
+          image: p.image || `https://picsum.photos/seed/${i}/300/200`,
+        }));
+
+        setProducts(formatted);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    if (search) {
-      data = data.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase())
-      );
-    }
+    fetchProducts();
+  }, []);
 
-    if (sort === "price") {
-      data.sort((a, b) => a.price - b.price);
-    } else {
-      data.sort((a, b) => a.name.localeCompare(b.name));
-    }
+  // Filter & search products
+  const filteredProducts = useMemo(() => {
+    let data = [...products];
+
+    if (category !== "All") data = data.filter((p) => p.category === category);
+    if (search) data = data.filter((p) =>
+      p.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    data.sort((a, b) =>
+      sort === "price" ? a.price - b.price : a.name.localeCompare(b.name)
+    );
 
     return data;
+  }, [products, category, search, sort]);
+
+  // Reset visible count when filters/search/sort change
+  useEffect(() => {
+    const id = setTimeout(() => setVisibleCount(ITEMS_PER_LOAD), 0);
+    return () => clearTimeout(id);
   }, [category, search, sort]);
+
+  // Infinite scroll
+  useEffect(() => {
+    if (!loaderRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !loading && visibleCount < filteredProducts.length) {
+          setLoading(true);
+          setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + ITEMS_PER_LOAD, filteredProducts.length));
+            setLoading(false);
+          }, 800);
+        }
+      },
+      { root: null, threshold: 1 }
+    );
+
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [loading, visibleCount, filteredProducts]);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -48,9 +97,7 @@ export default function Shop() {
       <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-100">Shop</h1>
-          <p className="text-gray-400 text-sm">
-            Premium UI & UX resources
-          </p>
+          <p className="text-gray-400 text-sm">Premium UI & UX resources</p>
         </div>
 
         <div className="flex gap-2 w-full lg:w-auto">
@@ -78,7 +125,7 @@ export default function Shop() {
       </div>
 
       {/* Category Pills */}
-      <div className="flex gap-2 overflow-x-auto">
+      <div className="flex gap-2 overflow-x-auto mb-4">
         {categories.map((c) => (
           <button
             key={c}
@@ -94,7 +141,7 @@ export default function Shop() {
         ))}
       </div>
 
-      {/* Layout */}
+      {/* Product Grid */}
       <div className="flex gap-8">
         <aside className="hidden lg:block w-64">
           <ShopSidebar
@@ -105,20 +152,19 @@ export default function Shop() {
         </aside>
 
         <section className="flex-1 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => (
+          {filteredProducts.slice(0, visibleCount).map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+
+          {loading &&
+            Array.from({ length: ITEMS_PER_LOAD }).map((_, i) => (
               <ProductSkeleton key={i} />
-            ))
-            : products.map((p) => (
-              <div
-                key={p.id}
-                className="hover:-translate-y-1 transition-transform"
-              >
-                <ProductCard product={p} />
-              </div>
             ))}
         </section>
       </div>
+
+      {/* Infinite scroll trigger */}
+      {visibleCount < filteredProducts.length && <div ref={loaderRef} className="h-12 mt-10" />}
     </div>
   );
 }

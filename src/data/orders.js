@@ -7,7 +7,8 @@ export const ordersData = [
     { id: "ORD-1003", customer: "mike@example.com", items: 2, total: 80.0, status: "Delivered", createdAt: "2026-01-12" },
     { id: "ORD-1004", customer: "lisa@example.com", items: 5, total: 250.0, status: "Cancelled", createdAt: "2026-01-10" },
     { id: "ORD-1005", customer: "mike@example.com", items: 4, total: 180.0, status: "Processing", createdAt: "2026-01-08" },
-    { id: "ORD-1006", customer: "jane@example.com", items: 2, total: 90.0, status: "Shipped", createdAt: "2026-01-07" },
+    { id: "ORD-1006", customer: "jane@example.com", items: 2, total: 90.0, status: "Shipped", createdAt: "2015-01-07" },
+    { id: "ORD-1007", customer: "Remmy@gmail.com", items: 6, total: 1200, status: "Delivered", createdAt: "2014-05-09" },
 ];
 
 // --- Totals ---

@@ -1,26 +1,18 @@
 // src/pages/Tickets.jsx
 import { motion as Motion } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import TicketTable from "../components/TicketTable";
 import StatCard from "../components/StatCard";
-import { ticketsData } from "../data/tickets"; // <-- import your static data
+import useTickets from "../hooks/useTickets";
 
 export default function Tickets() {
-  const [tickets, setTickets] = useState(ticketsData);
-
-  // Update ticket status
-  const updateStatus = (ticketId, newStatus) => {
-    setTickets((prev) =>
-      prev.map((t) =>
-        t.id === ticketId ? { ...t, status: newStatus } : t
-      )
-    );
-  };
+  // Pull tickets and update functions from the shared context
+  const { tickets, updateStatus } = useTickets();
 
   // Compute stats for dashboard cards
   const stats = useMemo(() => {
     const counts = { Open: 0, Pending: 0, Resolved: 0, Closed: 0 };
-    tickets.forEach((t) => counts[t.status]++);
+    tickets.forEach((t) => counts[t.status] = (counts[t.status] || 0) + 1);
     return counts;
   }, [tickets]);
 
@@ -41,8 +33,7 @@ export default function Tickets() {
             key={status}
             title={`${status} Tickets`}
             value={count}
-            type="number"       // <-- avoids "$" formatting
-            change={undefined}  // optional: no trend needed
+            type="number"
           />
         ))}
       </div>
@@ -54,7 +45,7 @@ export default function Tickets() {
         transition={{ duration: 0.4 }}
         className="bg-gray-800 rounded-2xl shadow-lg overflow-x-auto"
       >
-        <TicketTable tickets={tickets} onUpdate={updateStatus} />
+        <TicketTable tickets={tickets} onUpdate={updateStatus} isAdmin />
       </Motion.div>
     </div>
   );

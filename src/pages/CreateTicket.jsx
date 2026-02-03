@@ -1,9 +1,10 @@
+// src/pages/CreateTicket.jsx
 import { useState } from "react";
-import useTickets from "../hooks/useTickets";
 import { motion as Motion } from "framer-motion";
+import useTickets from "../hooks/useTickets";
 
-export default function CreateTicket() {
-  const { addTicket } = useTickets();
+export default function CreateTicket({ user }) {
+  const { createTicket } = useTickets();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -13,16 +14,13 @@ export default function CreateTicket() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newTicket = {
-      id: Date.now(),
+    createTicket({
       title,
       description,
       priority,
-      status: "Open",
-      createdAt: new Date().toISOString(),
-    };
-
-    addTicket(newTicket);
+      attachments: [],
+      user,
+    });
 
     setTitle("");
     setDescription("");
@@ -33,13 +31,15 @@ export default function CreateTicket() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 text-gray-100">
+    <div className="p-6 lg:p-8 space-y-6 text-gray-100 bg-gray-900 min-h-screen">
       <h1 className="text-3xl font-bold">Create Ticket</h1>
-      <p className="text-gray-400">Submit a new support ticket for customer issues</p>
+      <p className="text-gray-400">
+        Submit a new support ticket for customer issues
+      </p>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col gap-5"
+        className="bg-gray-800 p-6 rounded-xl shadow-md flex flex-col gap-5"
       >
         {/* Title */}
         <div>
@@ -49,7 +49,7 @@ export default function CreateTicket() {
             onChange={(e) => setTitle(e.target.value)}
             required
             placeholder="Enter ticket title"
-            className="w-full p-3 rounded-xl bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="w-full p-3 rounded-xl bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
           />
         </div>
 
@@ -62,7 +62,7 @@ export default function CreateTicket() {
             required
             rows={5}
             placeholder="Describe the issue in detail"
-            className="w-full p-3 rounded-xl bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="w-full p-3 rounded-xl bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
           />
         </div>
 
@@ -72,7 +72,7 @@ export default function CreateTicket() {
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="w-full p-3 rounded-xl bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="w-full p-3 rounded-xl bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
           >
             <option>Low</option>
             <option>Medium</option>

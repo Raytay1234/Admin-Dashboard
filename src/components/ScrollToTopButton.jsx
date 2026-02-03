@@ -1,44 +1,37 @@
-import { useEffect, useState } from "react";
-import { ArrowUp } from "lucide-react";
+// src/components/ScrollToTopButton.jsx
+import { useState, useEffect } from "react";
+import { ChevronUp } from "lucide-react";
 
 export default function ScrollToTopButton({ scrollRef }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const el = scrollRef?.current || window;
+    if (!scrollRef?.current) return;
 
-    const onScroll = () => {
-      const scrollTop = el === window ? window.scrollY : el.scrollTop;
-      setVisible(scrollTop > 300);
+    const handleScroll = () => {
+      setVisible(scrollRef.current.scrollTop > 200);
     };
 
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
+    const container = scrollRef.current;
+    container.addEventListener("scroll", handleScroll);
+
+    return () => container.removeEventListener("scroll", handleScroll);
   }, [scrollRef]);
 
   const scrollToTop = () => {
-    const el = scrollRef?.current || window;
-    if (el === window) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      el.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    if (!scrollRef?.current) return;
+    scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  if (!visible) return null;
 
   return (
     <button
       onClick={scrollToTop}
-      aria-label="Scroll to top"
-      className={`
-        fixed top-6 left-6 z-50 p-3 rounded-full
-        bg-green-500 text-black shadow-lg
-        transition-all duration-300
-        ${visible
-          ? "opacity-100 scale-100"
-          : "opacity-0 scale-90 pointer-events-none"}
-      `}
+      className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-green-600 text-white shadow-lg hover:bg-green-500 transition"
+      title="Scroll to top"
     >
-      <ArrowUp size={18} />
+      <ChevronUp className="w-5 h-5" />
     </button>
   );
 }
