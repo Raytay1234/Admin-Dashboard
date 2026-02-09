@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
-import AuthProvider from "./context/AuthProvider.jsx";
+import {AuthProvider} from "./context/AuthProvider.jsx";
 import { ThemeProvider } from "./context/ThemeProvider.jsx";
-import { ProductProvider } from "./context/ProductProvider.jsx";
+import ProductProvider from "./context/ProductProvider.jsx"; // default export
 import TicketProvider from "./context/TicketProvider.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import OrdersProvider from "./context/OrdersProvider.jsx"; // ✅ correct filename

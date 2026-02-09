@@ -1,15 +1,11 @@
 // src/context/AuthProvider.jsx
-import { useState, useEffect } from "react";
-import AuthContext from "./AuthContext.js";
+import React, { useState, useEffect } from "react";
+import { AuthContext } from "./AuthContextValue.js";
 
-export default function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem("user");
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
   });
 
   useEffect(() => {
@@ -17,9 +13,7 @@ export default function AuthProvider({ children }) {
     else localStorage.removeItem("user");
   }, [user]);
 
-  const login = (userData) => {
-    if (userData && userData.role) setUser(userData);
-  };
+  const login = (userData) => userData?.role && setUser(userData);
   const logout = () => setUser(null);
 
   const isAdmin = user?.role === "admin";
@@ -29,4 +23,4 @@ export default function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
+};

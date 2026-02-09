@@ -1,10 +1,11 @@
 // src/pages/Settings.jsx
 import { useContext, useState } from "react";
-import AuthContext from "../context/AuthContext.js";
+// ✅ Correct
+import { useAuth } from "../context/useAuth.js";
 import ThemeContext from "../context/ThemeProvider";
 
 export default function Settings() {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const [name, setName] = useState(user?.name || "");

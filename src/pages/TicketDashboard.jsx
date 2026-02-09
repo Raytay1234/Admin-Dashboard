@@ -1,12 +1,13 @@
-import { useContext, useMemo } from "react";
-import AuthContext from "../context/AuthContext";
+import {  useMemo } from "react";
+// ✅ Correct
+import { useAuth } from "../context/useAuth.js";
 import useTickets from "../hooks/useTickets";
 import TicketCharts from "../components/TicketCharts";
 import TicketTable from "../components/TicketTable";
 import Layout from "../components/Layout";
 
 export default function TicketDashboard() {
-    const { user, loading: authLoading } = useContext(AuthContext);
+    const { user, loading: authLoading } = useAuth();
     const { tickets, updateStatus, loading, error } = useTickets();
 
     const isAdmin = useMemo(() => user?.role === "admin", [user]);

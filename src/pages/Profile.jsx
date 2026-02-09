@@ -1,9 +1,10 @@
 // src/pages/Profile.jsx
-import { useContext, useState } from "react";
-import AuthContext from "../context/AuthContext.js";
+import { useState } from "react";
+// ✅ Correct
+import { useAuth } from "../context/useAuth.js";
 
 export default function Profile() {
-    const { user, logout } = useContext(AuthContext);
+    const { user, logout } = useAuth();
     const [editing, setEditing] = useState(false);
     const [name, setName] = useState(user?.name || "");
     const [email, setEmail] = useState(user?.email || "");

@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import { useContext, useMemo, useState } from "react";
 import { motion as Motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +7,7 @@ import StatCard from "../components/StatCard.jsx";
 import IncomeChart from "../components/IncomeChart.jsx";
 import DashboardContext from "../context/DashboardContext.js";
 import useTickets from "../hooks/useTickets.js";
-import ProductContext from "../context/ProductProvider.jsx"; // ✅ import product context
+import { ProductContext } from "../context/ProductProvider.jsx"; // ✅ use named import
 import { filterIncomeData, getYearlyTotals } from "../data/incomeData.js";
 
 const PERIODS = ["daily", "weekly", "monthly", "yearly"];
@@ -17,7 +18,7 @@ export default function Dashboard() {
     const { tickets } = useTickets();
     const openTickets = tickets.filter((t) => t.status === "Open").length;
 
-    const { products, loading: productsLoading, error: productsError } = useContext(ProductContext); // ✅ use API products
+    const { products, loading: productsLoading, error: productsError } = useContext(ProductContext);
 
     const [period, setPeriod] = useState("monthly");
 
@@ -128,24 +129,30 @@ export default function Dashboard() {
                     {productsLoading && <p className="text-gray-300">Loading products...</p>}
                     {productsError && <p className="text-red-400">Error: {productsError}</p>}
 
+                    {!productsLoading && !productsError && products.length === 0 && (
+                        <p className="text-gray-300">No products available</p>
+                    )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {products.slice(0, 4).map((p) => (
-                            <div
-                                key={p.id}
-                                className="bg-gray-700 p-3 rounded-xl hover:scale-105 transition"
-                            >
-                                <img
-                                    src={p.image}
-                                    alt={p.title}
-                                    className="w-full h-24 object-cover rounded-lg mb-2"
-                                />
-                                <h4 className="text-white text-sm font-medium truncate">{p.title}</h4>
-                                <p className="text-gray-300 text-xs">{p.category}</p>
-                                <p className="text-green-400 font-semibold mt-1">
-                                    ${p.price.toLocaleString()}
-                                </p>
-                            </div>
-                        ))}
+                        {!productsLoading &&
+                            !productsError &&
+                            products.slice(0, 4).map((p) => (
+                                <div
+                                    key={p.id}
+                                    className="bg-gray-700 p-3 rounded-xl hover:scale-105 transition"
+                                >
+                                    <img
+                                        src={p.image}
+                                        alt={p.title}
+                                        className="w-full h-24 object-cover rounded-lg mb-2"
+                                    />
+                                    <h4 className="text-white text-sm font-medium truncate">{p.title}</h4>
+                                    <p className="text-gray-300 text-xs">{p.category}</p>
+                                    <p className="text-green-400 font-semibold mt-1">
+                                        ${p.price.toLocaleString()}
+                                    </p>
+                                </div>
+                            ))}
                     </div>
                 </div>
             </div>

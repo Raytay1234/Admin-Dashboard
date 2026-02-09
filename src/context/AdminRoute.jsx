@@ -1,13 +1,12 @@
-import { useContext } from "react";
+// src/context/AdminRoute.jsx
 import { Navigate } from "react-router-dom";
-import AuthContext from "./AuthContext";
+import { useAuth } from "./useAuth.js"; // ✅ import the hook
 
 export default function AdminRoute({ children }) {
-    const { user } = useContext(AuthContext);
+  const { user, isAdmin } = useAuth();
 
-    if (!user || user.role !== "admin") {
-        return <Navigate to="/" replace />;
-    }
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />; // Redirect non-admins
 
-    return children;
+  return children;
 }
