@@ -1,19 +1,18 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [
+    tailwindcss(),
     react({
       babel: {
         plugins: [["babel-plugin-react-compiler"]],
       },
     }),
   ],
-  server: {
-    // Fix 404 on page refresh for React Router
-    historyApiFallback: true,
 
-    // Optional: your API proxy
+  server: {
     proxy: {
       "/api": {
         target: "http://localhost:5000",
