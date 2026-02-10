@@ -1,36 +1,43 @@
-import { motion as Motion } from "framer-motion";
+// src/pages/Orders.jsx
 import { useState, useMemo } from "react";
-import OrdersTable from "../components/OrdersTable";
-import useOrders from "../hooks/useOrders";
+import { motion as Motion } from "framer-motion";
+import { filterOrders, filterOrdersByDate } from "../data/orders.js";
 
 export default function Orders() {
-  const { orders } = useOrders();
   const [filter, setFilter] = useState("all");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
-  // Compute stats dynamically (based on filtered orders)
-  const stats = useMemo(() => {
-    let filtered = orders;
-
-    if (filter !== "all") filtered = filtered.filter((o) => o.status === filter);
+  // --- Filtered orders based on status + date ---
+  const filteredOrders = useMemo(() => {
+    let result = filterOrders(filter);
     if (dateRange.start && dateRange.end) {
-      const start = new Date(dateRange.start);
-      const end = new Date(dateRange.end);
-      filtered = filtered.filter((o) => {
-        const created = new Date(o.createdAt);
-        return created >= start && created <= end;
-      });
+      result = filterOrdersByDate(dateRange.start, dateRange.end).filter(o =>
+        result.some(f => f.id === o.id)
+      );
     }
+    return result;
+  }, [filter, dateRange]);
 
+  // --- Compute stats dynamically based on filtered orders ---
+  const stats = useMemo(() => {
+    const totals = filteredOrders.reduce(
+      (acc, o) => {
+        acc.totalOrders += 1;
+        acc.totalRevenue += o.total;
+        acc.statusCounts[o.status] = (acc.statusCounts[o.status] || 0) + 1;
+        return acc;
+      },
+      { totalOrders: 0, totalRevenue: 0, statusCounts: {} }
+    );
     return {
-      totalOrders: filtered.length,
-      totalRevenue: filtered.reduce((sum, o) => sum + o.total, 0),
-      processing: filtered.filter((o) => o.status === "Processing").length,
-      shipped: filtered.filter((o) => o.status === "Shipped").length,
-      delivered: filtered.filter((o) => o.status === "Delivered").length,
-      cancelled: filtered.filter((o) => o.status === "Cancelled").length,
+      totalOrders: totals.totalOrders,
+      totalRevenue: totals.totalRevenue,
+      processing: totals.statusCounts["Processing"] || 0,
+      shipped: totals.statusCounts["Shipped"] || 0,
+      delivered: totals.statusCounts["Delivered"] || 0,
+      cancelled: totals.statusCounts["Cancelled"] || 0,
     };
-  }, [orders, filter, dateRange]);
+  }, [filteredOrders]);
 
   return (
     <div className="p-6 lg:p-8 space-y-6 bg-gray-900 min-h-screen text-gray-100">
@@ -40,7 +47,7 @@ export default function Orders() {
         <p className="text-gray-400 text-sm">View and manage all customer orders</p>
       </div>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gray-800 p-4 rounded-2xl shadow-lg flex flex-col">
           <p className="text-gray-400 text-sm">Total Orders</p>
@@ -49,10 +56,7 @@ export default function Orders() {
         <div className="bg-gray-800 p-4 rounded-2xl shadow-lg flex flex-col">
           <p className="text-gray-400 text-sm">Total Revenue</p>
           <p className="text-2xl font-bold mt-2">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-            }).format(stats.totalRevenue)}
+            {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(stats.totalRevenue)}
           </p>
         </div>
         <div className="bg-gray-800 p-4 rounded-2xl shadow-lg flex flex-col">
@@ -67,7 +71,7 @@ export default function Orders() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {["all", "Processing", "Shipped", "Delivered", "Cancelled"].map((status) => (
+        {["all", "Processing", "Shipped", "Delivered", "Cancelled"].map(status => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -87,13 +91,13 @@ export default function Orders() {
         <input
           type="date"
           value={dateRange.start}
-          onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+          onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
           className="px-3 py-2 rounded-lg bg-gray-800 text-gray-100 border border-gray-700"
         />
         <input
           type="date"
           value={dateRange.end}
-          onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+          onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
           className="px-3 py-2 rounded-lg bg-gray-800 text-gray-100 border border-gray-700"
         />
         <button
@@ -111,7 +115,32 @@ export default function Orders() {
         transition={{ duration: 0.4 }}
         className="bg-gray-800 rounded-2xl shadow-lg overflow-x-auto"
       >
-        <OrdersTable filter={filter} dateRange={dateRange} />
+        <table className="w-full text-sm text-gray-300 border-separate border-spacing-y-2">
+          <thead className="text-gray-400">
+            <tr>
+              <th className="px-4 py-2 text-left">Order ID</th>
+              <th className="px-4 py-2 text-left">Customer</th>
+              <th className="px-4 py-2 text-left">Items</th>
+              <th className="px-4 py-2 text-left">Total</th>
+              <th className="px-4 py-2 text-left">Status</th>
+              <th className="px-4 py-2 text-left">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders.map(order => (
+              <tr key={order.id} className="bg-gray-700 hover:bg-gray-600 cursor-pointer">
+                <td className="px-4 py-2">{order.id}</td>
+                <td className="px-4 py-2">{order.customer}</td>
+                <td className="px-4 py-2">{order.items}</td>
+                <td className="px-4 py-2">
+                  {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(order.total)}
+                </td>
+                <td className="px-4 py-2">{order.status}</td>
+                <td className="px-4 py-2">{order.createdAt}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Motion.div>
     </div>
   );
