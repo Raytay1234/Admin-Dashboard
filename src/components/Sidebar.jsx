@@ -93,16 +93,33 @@ export default function Sidebar() {
         )}
       >
         {/* Logo */}
-        <div className="mb-6 text-center">
-          <img
-            src="/Duka.png"
-            alt="Duka Logo"
-            className="w-16 h-16 mx-auto"
-          />
-          <h1 className="text-2xl font-bold text-green-600 tracking-tight">
+        <div className="mb-8 flex flex-col items-center group">
+          <div className="relative">
+            {/* Glow Background */}
+            <div className="absolute inset-0 rounded-full bg-green-500/20 blur-xl opacity-70 group-hover:opacity-100 transition" />
+
+            {/* Logo Container */}
+            <div className="relative w-20 h-20 rounded-full bg-linear-to-br from-green-500 to-emerald-600 p-1 shadow-lg group-hover:scale-105 transition-transform duration-300">
+              <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center overflow-hidden">
+                <img
+                  src="/duka.png"
+                  alt="Duka Logo"
+                  className="w-14 h-14 object-cover"
+                />
+              </div>
+            </div>
+
+          </div>
+
+          <h1 className="mt-4 text-2xl font-bold bg-linear-to-r from-green-500 to-emerald-400 bg-clip-text text-transparent tracking-wide">
             Duka
           </h1>
+
+          <p className="text-xs text-gray-400 tracking-wider uppercase">
+            Admin Panel
+          </p>
         </div>
+
 
         {/* Admin Section */}
         {isAdmin && (

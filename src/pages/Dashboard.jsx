@@ -5,9 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 import StatCard from "../components/StatCard.jsx";
 import IncomeChart from "../components/IncomeChart.jsx";
-import DashboardContext from "../context/DashboardContext.js";
-import useTickets from "../hooks/useTickets.js";
 import { ProductContext } from "../context/ProductProvider.jsx";
+import useTickets from "../hooks/useTickets.js";
 import { ordersData, getOrdersTotals } from "../data/orders.js";
 import { customersData } from "../data/customersData.js";
 import { filterIncomeData, getYearlyTotals } from "../data/incomeData.js";
@@ -31,6 +30,14 @@ export default function Dashboard() {
   const [period, setPeriod] = useState("monthly");
   const filteredChartData = useMemo(() => filterIncomeData(period), [period]);
 
+  // --- Order Filter for Interactive Status Overview ---
+  const [orderFilter, setOrderFilter] = useState("all");
+  const filteredOrders = useMemo(() => {
+    if (orderFilter === "all") return ordersData.slice(-5);
+    return ordersData.filter(o => o.status === orderFilter).slice(-5);
+  }, [orderFilter]);
+
+  // --- Stats ---
   const stats = useMemo(() => {
     if (period === "yearly") return getYearlyTotals();
     return filteredChartData.reduce(
@@ -44,7 +51,7 @@ export default function Dashboard() {
     );
   }, [filteredChartData, period]);
 
-  // --- Customers ---
+  // --- Customer Stats ---
   const customerStats = useMemo(() => {
     const totalCustomers = customersData.length;
     const topSpender = customersData.reduce(
@@ -88,6 +95,53 @@ export default function Dashboard() {
         <StatCard title="Total Customers" value={customerStats.totalCustomers} change={2} type="number" />
       </div>
 
+      {/* Interactive Order Status Overview */}
+      <div className="bg-gray-800 p-6 rounded-2xl shadow-lg cursor-pointer">
+        <h3 className="text-lg font-semibold text-white mb-4">Order Status Overview</h3>
+        <div className="flex flex-col gap-3">
+          {["Processing", "Shipped", "Delivered", "Cancelled"].map((status) => {
+            const count = ordersData.filter(o => o.status === status).length;
+            const total = ordersData.length || 1;
+            const percent = Math.round((count / total) * 100);
+            const bgColor =
+              status === "Processing"
+                ? "bg-yellow-500"
+                : status === "Shipped"
+                  ? "bg-blue-500"
+                  : status === "Delivered"
+                    ? "bg-green-500"
+                    : "bg-red-500";
+
+            return (
+              <div
+                key={status}
+                className="flex flex-col hover:opacity-80 transition"
+                onClick={() => setOrderFilter(status)}
+              >
+                <div className="flex justify-between mb-1">
+                  <span className="text-gray-300 text-sm font-medium">{status}</span>
+                  <span className="text-gray-400 text-sm">{count} orders</span>
+                </div>
+                <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className={`${bgColor} h-2 rounded-full transition-all duration-300`}
+                    style={{ width: `${percent}%` }}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
+
+          <button
+            onClick={() => navigate("/orders")}
+            className="mt-3 px-4 py-1 bg-green-500 text-black rounded-full text-sm font-semibold hover:bg-green-600 transition"
+          >
+            View All Orders
+          </button>
+
+        </div>
+      </div>
+
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
@@ -118,19 +172,23 @@ export default function Dashboard() {
             <table className="w-full text-sm text-gray-300 border-separate border-spacing-y-2">
               <thead className="text-gray-400">
                 <tr>
+                  <th className="px-4 py-2 text-left">Order ID</th>
                   <th className="px-4 py-2 text-left">Customer</th>
                   <th className="px-4 py-2 text-left">Items</th>
                   <th className="px-4 py-2 text-left">Total</th>
                   <th className="px-4 py-2 text-left">Status</th>
+                  <th className="px-4 py-2 text-left">Created</th>
                 </tr>
               </thead>
               <tbody>
-                {ordersData.slice(-5).map((o) => (
+                {filteredOrders.map((o) => (
                   <tr key={o.id} className="bg-gray-700 hover:bg-gray-600 cursor-pointer">
+                    <td className="px-4 py-2">{o.id}</td>
                     <td className="px-4 py-2">{o.customer}</td>
                     <td className="px-4 py-2">{o.items}</td>
                     <td className="px-4 py-2">{formatCurrency(o.total)}</td>
                     <td className="px-4 py-2">{o.status}</td>
+                    <td className="px-4 py-2">{o.createdAt}</td>
                   </tr>
                 ))}
               </tbody>

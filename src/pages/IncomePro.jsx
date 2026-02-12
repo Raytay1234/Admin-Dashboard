@@ -1,3 +1,4 @@
+// src/pages/IncomePro.jsx
 import { useState, useMemo } from "react";
 import { motion as Motion } from "framer-motion";
 import {
@@ -9,7 +10,9 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import * as LucideIcons from "lucide-react"; // Safe import for icons
+import * as LucideIcons from "lucide-react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import { incomeData } from "../data/incomeData.js";
 
@@ -17,6 +20,7 @@ const PERIODS = ["daily", "weekly", "monthly", "yearly"];
 
 export default function IncomePro() {
   const [period, setPeriod] = useState("monthly");
+  const [downloadMenu, setDownloadMenu] = useState(false);
 
   // Safely get icons
   const ArrowUp = LucideIcons.ArrowUp || (() => <span>↑</span>);
@@ -85,6 +89,61 @@ export default function IncomePro() {
 
   const getSparklineData = (key) => filteredData.map((m) => ({ month: m.month, value: m[key] || 0 }));
 
+  // --- Download function ---
+  const downloadData = (type) => {
+    const data = filteredData.map(d => ({
+      Period: d.month,
+      Income: d.income,
+      Orders: d.orders,
+      NewCustomers: d.newCustomers,
+      Refunds: d.refunds,
+    }));
+
+    if (type === "csv") {
+      const csv = [
+        Object.keys(data[0]).join(","), // headers
+        ...data.map(row => Object.values(row).join(",")),
+      ].join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", "income.csv");
+      link.click();
+    }
+
+    if (type === "json") {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", "income.json");
+      link.click();
+    }
+
+    if (type === "pdf") {
+      const doc = new jsPDF();
+      doc.text("Income Report", 14, 20);
+
+      autoTable(doc, {
+        startY: 25,
+        head: [["Period", "Income", "Orders", "New Customers", "Refunds"]],
+        body: data.map(d => [
+          d.Period,
+          `$${d.Income.toLocaleString()}`,
+          d.Orders,
+          d.NewCustomers,
+          d.Refunds,
+        ]),
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [34, 197, 94] },
+      });
+
+      doc.save("income.pdf");
+    }
+
+    setDownloadMenu(false);
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-8 bg-gray-900 min-h-screen">
       {/* Header */}
@@ -95,8 +154,8 @@ export default function IncomePro() {
         </p>
       </div>
 
-      {/* Period Filter */}
-      <div className="flex gap-2 mb-4">
+      {/* Period Filter + Download */}
+      <div className="flex flex-wrap gap-2 items-center mb-4">
         {PERIODS.map((p) => (
           <button
             key={p}
@@ -107,6 +166,29 @@ export default function IncomePro() {
             {p}
           </button>
         ))}
+
+        {/* Download Dropdown */}
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setDownloadMenu(!downloadMenu)}
+            className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-black font-semibold"
+          >
+            Download ▾
+          </button>
+          {downloadMenu && (
+            <div className="absolute mt-2 w-40 bg-gray-800 rounded-lg shadow-lg z-50 flex flex-col">
+              {["csv", "json", "pdf"].map(type => (
+                <button
+                  key={type}
+                  onClick={() => downloadData(type)}
+                  className="px-4 py-2 text-sm text-gray-100 hover:bg-gray-700 transition text-left"
+                >
+                  {type.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Metrics Cards */}
@@ -121,7 +203,6 @@ export default function IncomePro() {
               bg-gray-800 text-gray-100
               transition transform hover:-translate-y-1 hover:shadow-2xl hover:bg-gray-700"
           >
-            {/* Title + Trend */}
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-400">{m.title}</span>
               <span className={`flex items-center gap-1 text-xs font-semibold ${m.trend >= 0 ? "text-green-400" : "text-red-400"}`}>
@@ -130,12 +211,10 @@ export default function IncomePro() {
               </span>
             </div>
 
-            {/* Value */}
             <span className="text-2xl font-bold">
               {m.type === "currency" ? formatCurrency(m.value) : m.value.toLocaleString()}
             </span>
 
-            {/* Mini Sparkline */}
             <div className="h-12">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={getSparklineData(m.key)}>
