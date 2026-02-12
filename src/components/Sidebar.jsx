@@ -95,7 +95,7 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="mb-6 text-center">
           <img
-            src="public/Duka.png"
+            src="/Duka.png"
             alt="Duka Logo"
             className="w-16 h-16 mx-auto"
           />
