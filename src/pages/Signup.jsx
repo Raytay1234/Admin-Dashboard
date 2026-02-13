@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// ✅ Correct
 import { useAuth } from "../context/useAuth.js";
 
 export default function Signup() {
-    const { login } = useAuth();
+    const { signup } = useAuth(); // Add signup method in your AuthContext
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -15,28 +14,25 @@ export default function Signup() {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Basic validation
-        if (!name || !email || !password) {
-            setError("Please fill in all fields");
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
+        if (!trimmedName || !trimmedEmail || !trimmedPassword) {
+            setError("All fields are required");
             return;
         }
 
-        // Mock signup: create user object
+        // Mock signup (replace with API if needed)
         const newUser = {
-            name,
-            email,
-            password, // for demo only; do NOT store plain passwords in production
-            role: "admin", // default role
+            name: trimmedName,
+            email: trimmedEmail,
+            role: "user",
+            joinedAt: new Date().toISOString(),
         };
 
-        // Save user to localStorage (for demo)
-        localStorage.setItem("user", JSON.stringify(newUser));
-
-        // Log in immediately
-        login(newUser);
-
-        // Redirect to dashboard
-        navigate("/");
+        signup(newUser); // store user in AuthContext
+        navigate("/"); // redirect to dashboard
     };
 
     return (
@@ -58,7 +54,10 @@ export default function Signup() {
                         <input
                             type="text"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => {
+                                setName(e.target.value);
+                                if (error) setError("");
+                            }}
                             className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                             placeholder="Your Name"
                         />
@@ -69,7 +68,10 @@ export default function Signup() {
                         <input
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => {
+                                setEmail(e.target.value);
+                                if (error) setError("");
+                            }}
                             className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                             placeholder="you@example.com"
                         />
@@ -80,7 +82,10 @@ export default function Signup() {
                         <input
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => {
+                                setPassword(e.target.value);
+                                if (error) setError("");
+                            }}
                             className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                             placeholder="********"
                         />
@@ -97,7 +102,7 @@ export default function Signup() {
                 <p className="text-gray-400 text-sm mt-4 text-center">
                     Already have an account?{" "}
                     <Link to="/login" className="text-green-500 hover:underline">
-                        Log in
+                        Login
                     </Link>
                 </p>
             </div>

@@ -1,15 +1,17 @@
 // src/pages/Profile.jsx
 import { useState } from "react";
-// ✅ Correct
 import { useAuth } from "../context/useAuth.js";
 
 export default function Profile() {
-    const { user, logout } = useAuth();
+    const { user, logout, isAdmin } = useAuth(); // ✅ get admin info
     const [editing, setEditing] = useState(false);
-    const [name, setName] = useState(user?.name || "");
-    const [email, setEmail] = useState(user?.email || "");
-    const [avatar, setAvatar] = useState(user?.avatar || "");
-    const [password, setPassword] = useState("");
+    const [formData, setFormData] = useState({
+        name: user?.name || "",
+        email: user?.email || "",
+        avatar: user?.avatar || "",
+        password: "",
+    });
+    const [successMsg, setSuccessMsg] = useState("");
 
     const joinDate = user?.joinedAt || new Date().toISOString().split("T")[0];
 
@@ -21,11 +23,35 @@ export default function Profile() {
         );
     }
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
     const handleSave = () => {
-        const updatedUser = { ...user, name, email, avatar };
+        const updatedUser = {
+            ...user,
+            name: formData.name,
+            email: formData.email,
+            avatar: formData.avatar,
+        };
+        if (formData.password) updatedUser.password = formData.password;
+
         localStorage.setItem("user", JSON.stringify(updatedUser));
+        setSuccessMsg("Profile updated successfully!");
         setEditing(false);
-        alert("Profile updated successfully!");
+        setFormData((prev) => ({ ...prev, password: "" }));
+        setTimeout(() => setSuccessMsg(""), 3000);
+    };
+
+    const handleCancel = () => {
+        setEditing(false);
+        setFormData({
+            name: user?.name || "",
+            email: user?.email || "",
+            avatar: user?.avatar || "",
+            password: "",
+        });
     };
 
     return (
@@ -33,115 +59,106 @@ export default function Profile() {
             <h1 className="text-3xl font-bold mb-6">Profile</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* LEFT: Avatar & Basic Info */}
+                {/* LEFT: Avatar & Info */}
                 <div className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col items-center">
                     <div className="relative mb-4">
                         <img
-                            src={avatar || `https://i.pravatar.cc/150?u=${email}`}
-                            alt={name}
+                            src={formData.avatar || `https://i.pravatar.cc/150?u=${formData.email}`}
+                            alt={formData.name}
                             className="w-32 h-32 rounded-full border-4 border-green-600 object-cover"
                         />
+                        {isAdmin && (
+                            <span className="absolute top-0 right-0 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
+                                ADMIN
+                            </span>
+                        )}
                     </div>
+
                     {editing && (
                         <input
                             type="text"
+                            name="avatar"
                             placeholder="Avatar URL"
-                            value={avatar}
-                            onChange={(e) => setAvatar(e.target.value)}
+                            value={formData.avatar}
+                            onChange={handleChange}
                             className="w-full p-2 mb-2 rounded-md text-black"
                         />
                     )}
-                    <h2 className="text-xl font-semibold">{name}</h2>
-                    <p className="text-gray-400">{email || "No email set"}</p>
+
+                    <h2 className="text-xl font-semibold">{formData.name}</h2>
+                    <p className="text-gray-400">{formData.email || "No email set"}</p>
                     <p className="text-gray-500 mt-1">
-                        Role: <span className="font-medium">{user.role}</span>
+                        Role:{" "}
+                        <span className={`font-medium ${isAdmin ? "text-green-400" : ""}`}>
+                            {user.role}
+                        </span>
                     </p>
                     <p className="text-gray-500 mt-1">
                         Joined: <span className="font-medium">{joinDate}</span>
                     </p>
+                    {isAdmin && (
+                        <p className="mt-2 text-green-400 font-medium text-sm">
+                            You have admin privileges
+                        </p>
+                    )}
                 </div>
 
                 {/* RIGHT: Editable Info & Actions */}
-                <div className="bg-gray-900 p-6 rounded-xl shadow-md">
-                    <h3 className="text-lg font-semibold mb-4">Account Information</h3>
+                <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-4">
+                    <h3 className="text-lg font-semibold mb-2">Account Information</h3>
 
-                    <div className="flex flex-col gap-4">
-                        <div>
-                            <label className="block text-gray-400 mb-1">Name</label>
+                    {["name", "email", "password"].map((field) => (
+                        <div key={field} className="flex flex-col">
+                            <label className="block text-gray-400 mb-1 capitalize">{field}</label>
                             <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                type={field === "password" ? "password" : "text"}
+                                name={field}
+                                value={formData[field]}
+                                onChange={handleChange}
+                                placeholder={field === "password" ? "Enter new password" : ""}
                                 disabled={!editing}
                                 className={`w-full p-2 rounded-md ${editing ? "text-black bg-gray-100" : "bg-gray-800 text-gray-300"
                                     }`}
                             />
                         </div>
+                    ))}
 
-                        <div>
-                            <label className="block text-gray-400 mb-1">Email</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={!editing}
-                                className={`w-full p-2 rounded-md ${editing ? "text-black bg-gray-100" : "bg-gray-800 text-gray-300"
-                                    }`}
-                            />
-                        </div>
+                    {/* Success Message */}
+                    {successMsg && <p className="text-green-400 text-sm font-medium">{successMsg}</p>}
 
-                        <div>
-                            <label className="block text-gray-400 mb-1">Password</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Enter new password"
-                                disabled={!editing}
-                                className={`w-full p-2 rounded-md ${editing ? "text-black bg-gray-100" : "bg-gray-800 text-gray-300"
-                                    }`}
-                            />
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-3 mt-4">
-                            {editing ? (
-                                <>
-                                    <button
-                                        onClick={handleSave}
-                                        className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
-                                    >
-                                        Save Changes
-                                    </button>
-                                    <button
-                                        onClick={() => setEditing(false)}
-                                        className="px-4 py-2 bg-gray-700 rounded-md text-white hover:bg-gray-600"
-                                    >
-                                        Cancel
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setName(user?.name || "");
-                                            setEmail(user?.email || "");
-                                            setAvatar(user?.avatar || "");
-                                            setEditing(true);
-                                        }}
-                                        className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
-                                    >
-                                        Edit Profile
-                                    </button>
-                                    <button
-                                        onClick={logout}
-                                        className="px-4 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
-                                    >
-                                        Logout
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                    {/* Actions */}
+                    <div className="flex gap-3 mt-4">
+                        {editing ? (
+                            <>
+                                <button
+                                    onClick={handleSave}
+                                    className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
+                                >
+                                    Save Changes
+                                </button>
+                                <button
+                                    onClick={handleCancel}
+                                    className="px-4 py-2 bg-gray-700 rounded-md text-white hover:bg-gray-600"
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => setEditing(true)}
+                                    className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
+                                >
+                                    Edit Profile
+                                </button>
+                                <button
+                                    onClick={logout}
+                                    className="px-4 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

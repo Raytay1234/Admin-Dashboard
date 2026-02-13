@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// ✅ Correct
 import { useAuth } from "../context/useAuth.js";
 
 export default function Login() {
@@ -14,8 +13,10 @@ export default function Login() {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Basic validation
-        if (!email || !password) {
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
+        if (!trimmedEmail || !trimmedPassword) {
             setError("Please enter both email and password");
             return;
         }
@@ -23,7 +24,7 @@ export default function Login() {
         // Mock login (replace with API if needed)
         const mockUser = {
             name: "Admin User",
-            email,
+            email: trimmedEmail,
             role: "admin",
         };
 
@@ -50,7 +51,10 @@ export default function Login() {
                         <input
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => {
+                                setEmail(e.target.value);
+                                if (error) setError("");
+                            }}
                             className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                             placeholder="you@example.com"
                         />
@@ -61,7 +65,10 @@ export default function Login() {
                         <input
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => {
+                                setPassword(e.target.value);
+                                if (error) setError("");
+                            }}
                             className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                             placeholder="********"
                         />

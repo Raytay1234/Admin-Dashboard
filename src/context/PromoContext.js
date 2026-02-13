@@ -1,5 +1,12 @@
+// src/context/ProductContext.js
 import { createContext } from "react";
 
-const PromoContext = createContext();
+const ProductContext = createContext({
+  products: [],
+  loading: false,
+  addProduct: () => {},
+  updateProduct: () => {},
+  removeProduct: () => {},
+});
 
-export default PromoContext;
+export default ProductContext; // default export

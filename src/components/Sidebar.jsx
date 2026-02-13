@@ -53,14 +53,14 @@ export default function Sidebar() {
         onClick={() => setOpen(false)}
         className={({ isActive }) =>
           clsx(
-            "flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-all",
+            "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
             isActive
               ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
               : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           )
         }
       >
-        <item.icon size={16} />
+        <item.icon size={18} />
         {item.label}
       </NavLink>
     ));
@@ -93,12 +93,9 @@ export default function Sidebar() {
         )}
       >
         {/* Logo */}
-        <div className="mb-8 flex flex-col items-center group">
+        <div className="mb-6 flex flex-col items-center group">
           <div className="relative">
-            {/* Glow Background */}
             <div className="absolute inset-0 rounded-full bg-green-500/20 blur-xl opacity-70 group-hover:opacity-100 transition" />
-
-            {/* Logo Container */}
             <div className="relative w-20 h-20 rounded-full bg-linear-to-br from-green-500 to-emerald-600 p-1 shadow-lg group-hover:scale-105 transition-transform duration-300">
               <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center overflow-hidden">
                 <img
@@ -108,18 +105,32 @@ export default function Sidebar() {
                 />
               </div>
             </div>
-
           </div>
-
           <h1 className="mt-4 text-2xl font-bold bg-linear-to-r from-green-500 to-emerald-400 bg-clip-text text-transparent tracking-wide">
             Duka
           </h1>
-
           <p className="text-xs text-gray-400 tracking-wider uppercase">
             Admin Panel
           </p>
         </div>
 
+        {/* Logged-in User */}
+        {user && (
+          <div
+            className="mb-6 flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200"
+            onClick={() => navigate("/profile")}
+          >
+            <img
+              src={user.avatar || `https://i.pravatar.cc/150?u=${user.email}`}
+              alt={user.name}
+              className="w-16 h-16 rounded-full border-2 border-green-500 object-cover mb-2 shadow-sm"
+            />
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+              {user.name}
+            </p>
+            <p className="text-xs text-gray-400">{user.role}</p>
+          </div>
+        )}
 
         {/* Admin Section */}
         {isAdmin && (
@@ -127,14 +138,12 @@ export default function Sidebar() {
             <h2 className="text-gray-400 text-xs font-semibold uppercase mb-2">
               Admin
             </h2>
-            <nav className="flex flex-col gap-2">
-              {renderMenu(adminMenu)}
-            </nav>
+            <nav className="flex flex-col gap-2">{renderMenu(adminMenu)}</nav>
           </div>
         )}
 
         {/* User Section */}
-        <div className="mb-6 mt-auto">
+        <div className="mt-auto">
           <h2 className="text-gray-400 text-xs font-semibold uppercase mb-2">
             User
           </h2>
@@ -144,7 +153,7 @@ export default function Sidebar() {
             {user && (
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 mt-2"
+                className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 mt-2 transition-all duration-200"
               >
                 <FaSignOutAlt size={16} />
                 Logout

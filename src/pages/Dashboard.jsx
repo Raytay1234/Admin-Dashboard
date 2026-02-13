@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import StatCard from "../components/StatCard.jsx";
 import IncomeChart from "../components/IncomeChart.jsx";
-import { ProductContext } from "../context/ProductProvider.jsx";
+import ProductContext from "../context/ProductContext.js";
 import useTickets from "../hooks/useTickets.js";
 import { ordersData, getOrdersTotals } from "../data/orders.js";
 import { customersData } from "../data/customersData.js";
