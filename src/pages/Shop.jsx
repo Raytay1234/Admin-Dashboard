@@ -1,6 +1,6 @@
 // src/pages/Shop.jsx
 import { useContext, useMemo, useRef, useEffect, useState } from "react";
-import {ProductContext} from "../context/ProductContext.js";
+import ProductContext from "../context/ProductContext.js";
 import ProductCard from "../components/ProductCard.jsx";
 import ProductSkeleton from "../components/ProductSkeleton.jsx";
 import { useAuth } from "../context/useAuth.js"; // ✅ get admin info
