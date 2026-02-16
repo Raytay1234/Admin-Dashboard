@@ -9,8 +9,8 @@ import {
   FaUsers,
   FaDollarSign,
   FaShoppingCart,
-  FaUserCircle,
   FaLifeRing,
+  FaUserCircle,
   FaSignOutAlt,
 } from "react-icons/fa";
 import clsx from "clsx";
@@ -23,6 +23,7 @@ export default function Sidebar() {
 
   const toggle = () => setOpen((prev) => !prev);
 
+  // Admin menu
   const adminMenu = [
     { label: "Dashboard", icon: FaHome, path: "/" },
     { label: "Products", icon: FaBoxOpen, path: "/products" },
@@ -32,13 +33,17 @@ export default function Sidebar() {
     { label: "Orders", icon: FaShoppingCart, path: "/orders" },
   ];
 
-  const userMenu = [
+  // Base user menu (Profile added conditionally)
+  const baseUserMenu = [
     { label: "Shop", icon: FaShoppingCart, path: "/shop" },
     { label: "Help", icon: FaLifeRing, path: "/help" },
     { label: "Create Ticket", icon: FaLifeRing, path: "/create-ticket" },
     { label: "Tickets", icon: FaLifeRing, path: "/tickets" },
-    { label: "Profile", icon: FaUserCircle, path: "/profile" },
   ];
+
+  const finalUserMenu = user
+    ? baseUserMenu // remove Profile tab if logged in
+    : [...baseUserMenu, { label: "Profile", icon: FaUserCircle, path: "/profile" }];
 
   const handleLogout = () => {
     logout();
@@ -77,12 +82,7 @@ export default function Sidebar() {
       </button>
 
       {/* Overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
+      {open && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setOpen(false)} />}
 
       {/* Sidebar */}
       <aside
@@ -98,36 +98,31 @@ export default function Sidebar() {
             <div className="absolute inset-0 rounded-full bg-green-500/20 blur-xl opacity-70 group-hover:opacity-100 transition" />
             <div className="relative w-20 h-20 rounded-full bg-linear-to-br from-green-500 to-emerald-600 p-1 shadow-lg group-hover:scale-105 transition-transform duration-300">
               <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center overflow-hidden">
-                <img
-                  src="/duka.png"
-                  alt="Duka Logo"
-                  className="w-14 h-14 object-cover"
-                />
+                <img src="/duka.png" alt="Duka Logo" className="w-14 h-14 object-cover" />
               </div>
             </div>
           </div>
           <h1 className="mt-4 text-2xl font-bold bg-linear-to-r from-green-500 to-emerald-400 bg-clip-text text-transparent tracking-wide">
             Duka
           </h1>
-          <p className="text-xs text-gray-400 tracking-wider uppercase">
-            Admin Panel
-          </p>
+          <p className="text-xs text-gray-400 tracking-wider uppercase">Admin Panel</p>
         </div>
 
-        {/* Logged-in User */}
+        {/* Profile Avatar (if logged in) */}
         {user && (
           <div
             className="mb-6 flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200"
-            onClick={() => navigate("/profile")}
+            onClick={() => {
+              navigate("/profile");
+              setOpen(false);
+            }}
           >
             <img
               src={user.avatar || `https://i.pravatar.cc/150?u=${user.email}`}
               alt={user.name}
               className="w-16 h-16 rounded-full border-2 border-green-500 object-cover mb-2 shadow-sm"
             />
-            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-              {user.name}
-            </p>
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{user.name}</p>
             <p className="text-xs text-gray-400">{user.role}</p>
           </div>
         )}
@@ -135,21 +130,16 @@ export default function Sidebar() {
         {/* Admin Section */}
         {isAdmin && (
           <div className="mb-6">
-            <h2 className="text-gray-400 text-xs font-semibold uppercase mb-2">
-              Admin
-            </h2>
+            <h2 className="text-gray-400 text-xs font-semibold uppercase mb-2">Admin</h2>
             <nav className="flex flex-col gap-2">{renderMenu(adminMenu)}</nav>
           </div>
         )}
 
         {/* User Section */}
         <div className="mt-auto">
-          <h2 className="text-gray-400 text-xs font-semibold uppercase mb-2">
-            User
-          </h2>
+          <h2 className="text-gray-400 text-xs font-semibold uppercase mb-2">User</h2>
           <nav className="flex flex-col gap-2">
-            {renderMenu(userMenu)}
-
+            {renderMenu(finalUserMenu)}
             {user && (
               <button
                 onClick={handleLogout}

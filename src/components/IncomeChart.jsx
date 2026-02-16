@@ -1,3 +1,4 @@
+// src/components/IncomeChart.jsx
 import {
   ResponsiveContainer,
   LineChart,
@@ -22,7 +23,7 @@ export default function IncomeChart({
   if (!data.length) return <p className="text-gray-300">No data available</p>;
 
   return (
-    <div className="w-full h-87.5"> {/* 👈 IMPORTANT */}
+    <div className="w-full h-64 sm:h-80 lg:h-96"> {/* ✅ responsive height */}
       <ResponsiveContainer width="100%" height="100%">
         {period === "yearly" ? (
           <BarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
@@ -63,4 +64,3 @@ export default function IncomeChart({
     </div>
   );
 }
-

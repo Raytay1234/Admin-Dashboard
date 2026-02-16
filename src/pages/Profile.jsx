@@ -1,8 +1,10 @@
 // src/pages/Profile.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth.js";
 
 export default function Profile() {
+    const navigate = useNavigate();
     const { user, logout, isAdmin } = useAuth(); // ✅ get admin info
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState({
@@ -15,14 +17,22 @@ export default function Profile() {
 
     const joinDate = user?.joinedAt || new Date().toISOString().split("T")[0];
 
+    // --- Redirect or display message if not logged in ---
     if (!user) {
         return (
             <div className="p-6 text-gray-100">
                 <p>You are not logged in.</p>
+                <button
+                    onClick={() => navigate("/login")}
+                    className="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                    Go to Login
+                </button>
             </div>
         );
     }
 
+    // --- Handlers ---
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -41,6 +51,10 @@ export default function Profile() {
         setSuccessMsg("Profile updated successfully!");
         setEditing(false);
         setFormData((prev) => ({ ...prev, password: "" }));
+
+        // Refresh the app context so Sidebar and other components show updated info
+        window.dispatchEvent(new Event("storage"));
+
         setTimeout(() => setSuccessMsg(""), 3000);
     };
 
@@ -152,7 +166,10 @@ export default function Profile() {
                                     Edit Profile
                                 </button>
                                 <button
-                                    onClick={logout}
+                                    onClick={() => {
+                                        logout();
+                                        navigate("/login");
+                                    }}
                                     className="px-4 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
                                 >
                                     Logout

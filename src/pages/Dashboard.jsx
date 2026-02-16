@@ -150,13 +150,14 @@ export default function Dashboard() {
             key={period}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800 p-6 rounded-2xl shadow-lg h-96"
+            className="bg-gray-800 p-6 rounded-2xl shadow-lg"
           >
             <h3 className="text-lg font-semibold text-white mb-4">
               Income & Customers ({period})
             </h3>
-            <IncomeChart data={filteredChartData} />
+            <IncomeChart data={filteredChartData} period={period} />
           </Motion.div>
+
 
           {/* Recent Orders Table */}
           <div className="bg-gray-800 p-6 rounded-2xl shadow-lg overflow-x-auto">
