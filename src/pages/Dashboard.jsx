@@ -10,6 +10,7 @@ import useTickets from "../hooks/useTickets.js";
 import { ordersData, getOrdersTotals } from "../data/orders.js";
 import { customersData } from "../data/customersData.js";
 import { filterIncomeData, getYearlyTotals } from "../data/incomeData.js";
+import { getCloudinaryURL } from "../utils/cloudinary.js";
 
 const PERIODS = ["daily", "weekly", "monthly", "yearly"];
 
@@ -21,7 +22,7 @@ export default function Dashboard() {
 
   // --- Tickets ---
   const { tickets } = useTickets();
-  const openTickets = tickets?.filter(t => t.status === "Open").length || 0;
+  const openTickets = tickets?.filter((t) => t.status === "Open").length || 0;
 
   // --- Products ---
   const { products, loading: productsLoading, error: productsError } = useContext(ProductContext);
@@ -34,7 +35,7 @@ export default function Dashboard() {
   const [orderFilter, setOrderFilter] = useState("all");
   const filteredOrders = useMemo(() => {
     if (orderFilter === "all") return ordersData.slice(-5);
-    return ordersData.filter(o => o.status === orderFilter).slice(-5);
+    return ordersData.filter((o) => o.status === orderFilter).slice(-5);
   }, [orderFilter]);
 
   // --- Stats ---
@@ -56,7 +57,7 @@ export default function Dashboard() {
     const totalCustomers = customersData.length;
     const topSpender = customersData.reduce(
       (prev, curr) => (curr.totalSpent > prev.totalSpent ? curr : prev),
-      customersData[0]
+      customersData[0] || {}
     );
     return { totalCustomers, topSpender };
   }, []);
@@ -100,7 +101,7 @@ export default function Dashboard() {
         <h3 className="text-lg font-semibold text-white mb-4">Order Status Overview</h3>
         <div className="flex flex-col gap-3">
           {["Processing", "Shipped", "Delivered", "Cancelled"].map((status) => {
-            const count = ordersData.filter(o => o.status === status).length;
+            const count = ordersData.filter((o) => o.status === status).length;
             const total = ordersData.length || 1;
             const percent = Math.round((count / total) * 100);
             const bgColor =
@@ -138,7 +139,6 @@ export default function Dashboard() {
           >
             View All Orders
           </button>
-
         </div>
       </div>
 
@@ -157,7 +157,6 @@ export default function Dashboard() {
             </h3>
             <IncomeChart data={filteredChartData} period={period} />
           </Motion.div>
-
 
           {/* Recent Orders Table */}
           <div className="bg-gray-800 p-6 rounded-2xl shadow-lg overflow-x-auto">
@@ -214,14 +213,14 @@ export default function Dashboard() {
                   className="bg-gray-700 p-3 rounded-xl hover:scale-105 transition cursor-pointer"
                 >
                   <img
-                    src={p.image}
+                    src={getCloudinaryURL(p.imageId, 150, 150)}
                     alt={p.title}
                     className="w-full h-24 object-cover rounded-lg mb-2"
                   />
                   <h4 className="text-white text-sm font-medium truncate">{p.title}</h4>
                   <p className="text-gray-300 text-xs">{p.category}</p>
                   <p className="text-green-400 font-semibold mt-1">
-                    ${p.price.toLocaleString()}
+                    {formatCurrency(p.price)}
                   </p>
                 </div>
               ))}
@@ -240,7 +239,7 @@ export default function Dashboard() {
                   <p className="text-white font-medium truncate">{c.name}</p>
                   <p className="text-gray-400 text-sm truncate">{c.email}</p>
                 </div>
-                <p className="text-yellow-400 font-semibold">${c.totalSpent}</p>
+                <p className="text-yellow-400 font-semibold">{formatCurrency(c.totalSpent)}</p>
               </div>
             ))}
             <button

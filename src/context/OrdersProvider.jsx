@@ -1,32 +1,25 @@
 // src/context/OrdersProvider.jsx
-import { useEffect, useState } from "react";
-import OrdersContext from "./OrdersContext.js";
-import { ordersData } from "../data/orders.js";
+import { useState, useEffect } from "react";
+import { OrderContext } from "./orderContext.js";
+import { ordersData as mockOrders } from "../data/orders.js"; // your mock orders generator
 
 export default function OrdersProvider({ children }) {
-    const [orders, setOrders] = useState(() => {
-        try {
-            const stored = localStorage.getItem("orders");
-            return stored ? JSON.parse(stored) : ordersData;
-        } catch {
-            return ordersData;
-        }
-    });
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    // Persist to localStorage
-    useEffect(() => {
-        localStorage.setItem("orders", JSON.stringify(orders));
-    }, [orders]);
+  useEffect(() => {
+    // simulate API fetch
+    const timeout = setTimeout(() => {
+      setOrders(mockOrders);
+      setLoading(false);
+    }, 500); // 0.5s delay to mimic fetch
 
-    const updateStatus = (id, status) => {
-        setOrders((prev) =>
-            prev.map((o) => (o.id === id ? { ...o, status } : o))
-        );
-    };
+    return () => clearTimeout(timeout);
+  }, []);
 
-    return (
-        <OrdersContext.Provider value={{ orders, updateStatus }}>
-            {children}
-        </OrdersContext.Provider>
-    );
+  return (
+    <OrderContext.Provider value={{ orders, loading }}>
+      {children}
+    </OrderContext.Provider>
+  );
 }

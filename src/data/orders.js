@@ -1,6 +1,4 @@
-// src/data/orders.js
 
-// Generate “infinite-looking” orders
 const generateOrders = (count = 100) => {
     const statuses = ["Processing", "Shipped", "Delivered", "Cancelled"];
     const customers = [

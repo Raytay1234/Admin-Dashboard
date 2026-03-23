@@ -1,94 +1,112 @@
+// src/pages/Login.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/useAuth.js";
 
-export default function Login() {
-    const { login } = useAuth();
-    const navigate = useNavigate();
+export default function Login({ setUser }) {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+  const handleLogin = (e) => {
+    e.preventDefault();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
 
-        const trimmedEmail = email.trim();
-        const trimmedPassword = password.trim();
+    if (!trimmedEmail || !trimmedPassword) {
+      setError("Please enter both email and password");
+      return;
+    }
 
-        if (!trimmedEmail || !trimmedPassword) {
-            setError("Please enter both email and password");
-            return;
-        }
+    // Mock users database
+    const users = [
+      {
+        name: "Admin User",
+        email: "ryanmugi2004@gmail.com",
+        password: "admin123",
+        role: "admin",
+      },
+      {
+        name: "Normal User",
+        email: "user@example.com",
+        password: "user123",
+        role: "user",
+      },
+    ];
 
-        // Mock login (replace with API if needed)
-        const mockUser = {
-            name: "Admin User",
-            email: trimmedEmail,
-            role: "admin",
-        };
-
-        login(mockUser); // set user in AuthContext
-        navigate("/"); // redirect to dashboard
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900">
-            <div className="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-lg">
-                <h1 className="text-2xl font-bold text-green-500 mb-6 text-center">
-                    Login
-                </h1>
-
-                {error && (
-                    <div className="bg-red-900/40 text-red-400 p-2 rounded mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div className="flex flex-col">
-                        <label className="text-gray-300 mb-1">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => {
-                                setEmail(e.target.value);
-                                if (error) setError("");
-                            }}
-                            className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="you@example.com"
-                        />
-                    </div>
-
-                    <div className="flex flex-col">
-                        <label className="text-gray-300 mb-1">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                if (error) setError("");
-                            }}
-                            className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="********"
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="bg-green-500 hover:bg-green-600 text-gray-900 font-semibold py-2 px-4 rounded transition"
-                    >
-                        Login
-                    </button>
-                </form>
-
-                <p className="text-gray-400 text-sm mt-4 text-center">
-                    Don’t have an account?{" "}
-                    <Link to="/signup" className="text-green-500 hover:underline">
-                        Sign up
-                    </Link>
-                </p>
-            </div>
-        </div>
+    const foundUser = users.find(
+      (u) => u.email === trimmedEmail && u.password === trimmedPassword
     );
+
+    if (!foundUser) {
+      setError("Invalid email or password");
+      return;
+    }
+
+    // Save user to state & localStorage
+    setUser(foundUser);
+    localStorage.setItem("user", JSON.stringify(foundUser));
+
+    // Redirect based on role
+    if (foundUser.role === "admin") {
+      navigate("/"); 
+    } else {
+      navigate("/shop"); 
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-lg">
+        <h1 className="text-2xl font-bold text-green-500 mb-6 text-center">
+          Login
+        </h1>
+
+        {error && (
+          <div className="bg-red-900/40 text-red-400 p-2 rounded mb-4 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError("");
+            }}
+            className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError("");
+            }}
+            className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+
+          <button
+            type="submit"
+            className="bg-green-500 hover:bg-green-600 text-gray-900 font-semibold py-2 px-4 rounded transition"
+          >
+            Login
+          </button>
+        </form>
+
+        <p className="text-gray-400 text-sm mt-4 text-center">
+          Don’t have an account?{" "}
+          <Link to="/signup" className="text-green-500 hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 }

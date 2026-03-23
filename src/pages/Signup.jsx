@@ -1,111 +1,101 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/useAuth.js";
+// src/pages/Signup.jsx
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-export default function Signup() {
-    const { signup } = useAuth(); // Add signup method in your AuthContext
-    const navigate = useNavigate();
+export default function Signup({ setUser }) {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
 
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+  const ADMIN_EMAIL = "ryanmugi2004@gmail.com"; // Example admin email
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+  const handleSignup = (e) => {
+    e.preventDefault();
 
-        const trimmedName = name.trim();
-        const trimmedEmail = email.trim();
-        const trimmedPassword = password.trim();
+    if (!name || !email || !password || !confirm) {
+      setError("All fields are required");
+      return;
+    }
 
-        if (!trimmedName || !trimmedEmail || !trimmedPassword) {
-            setError("All fields are required");
-            return;
-        }
+    if (password !== confirm) {
+      setError("Passwords do not match!");
+      return;
+    }
 
-        // Mock signup (replace with API if needed)
-        const newUser = {
-            name: trimmedName,
-            email: trimmedEmail,
-            role: "user",
-            joinedAt: new Date().toISOString(),
-        };
+    // Determine role
+    const role = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? "admin" : "user";
 
-        signup(newUser); // store user in AuthContext
-        navigate("/"); // redirect to dashboard
-    };
+    const user = { name, email, role, joinedAt: new Date().toISOString() };
+    setUser(user);
+    localStorage.setItem("user", JSON.stringify(user));
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900">
-            <div className="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-lg">
-                <h1 className="text-2xl font-bold text-green-500 mb-6 text-center">
-                    Sign Up
-                </h1>
+    navigate("/"); // redirect to home/dashboard
+  };
 
-                {error && (
-                    <div className="bg-red-900/40 text-red-400 p-2 rounded mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
+  return (
+    <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
+      <form
+        onSubmit={handleSignup}
+        className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm flex flex-col gap-4"
+      >
+        <h1 className="text-2xl font-bold text-center">Sign Up</h1>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div className="flex flex-col">
-                        <label className="text-gray-300 mb-1">Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => {
-                                setName(e.target.value);
-                                if (error) setError("");
-                            }}
-                            className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="Your Name"
-                        />
-                    </div>
+        {error && (
+          <div className="bg-red-100 text-red-700 p-2 rounded text-sm text-center">
+            {error}
+          </div>
+        )}
 
-                    <div className="flex flex-col">
-                        <label className="text-gray-300 mb-1">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => {
-                                setEmail(e.target.value);
-                                if (error) setError("");
-                            }}
-                            className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="you@example.com"
-                        />
-                    </div>
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          required
+          onChange={(e) => setName(e.target.value)}
+          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          required
+          onChange={(e) => setEmail(e.target.value)}
+          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          required
+          onChange={(e) => setPassword(e.target.value)}
+          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
+        />
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirm}
+          required
+          onChange={(e) => setConfirm(e.target.value)}
+          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
+        />
 
-                    <div className="flex flex-col">
-                        <label className="text-gray-300 mb-1">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                if (error) setError("");
-                            }}
-                            className="p-2 rounded bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="********"
-                        />
-                    </div>
+        <button
+          type="submit"
+          className="bg-red-600 text-white p-2 rounded hover:bg-red-700 transition"
+        >
+          Sign Up
+        </button>
 
-                    <button
-                        type="submit"
-                        className="bg-green-500 hover:bg-green-600 text-gray-900 font-semibold py-2 px-4 rounded transition"
-                    >
-                        Sign Up
-                    </button>
-                </form>
-
-                <p className="text-gray-400 text-sm mt-4 text-center">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-green-500 hover:underline">
-                        Login
-                    </Link>
-                </p>
-            </div>
-        </div>
-    );
+        <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
+          Already have an account?{" "}
+          <Link to="/login" className="text-red-600 hover:underline">
+            Login
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
 }
