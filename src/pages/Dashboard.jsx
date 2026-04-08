@@ -1,256 +1,241 @@
-// src/pages/Dashboard.jsx
-import { useContext, useMemo, useState } from "react";
-import { motion as Motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import StatCard from "../components/StatCard.jsx";
-import IncomeChart from "../components/IncomeChart.jsx";
-import ProductContext from "../context/ProductContext.js";
-import useTickets from "../hooks/useTickets.js";
-import { ordersData, getOrdersTotals } from "../data/orders.js";
-import { customersData } from "../data/customersData.js";
-import { filterIncomeData, getYearlyTotals } from "../data/incomeData.js";
-import { getCloudinaryURL } from "../utils/cloudinary.js";
 
-const PERIODS = ["daily", "weekly", "monthly", "yearly"];
+import {
+  getOrdersTotals,
+  getMonthlyOrderTrend,
+  getMonthlyComparison,
+  getChange,
+} from "../data/ordersData.js";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-
-  // --- Orders ---
-  const totals = getOrdersTotals();
-
-  // --- Tickets ---
-  const { tickets } = useTickets();
-  const openTickets = tickets?.filter((t) => t.status === "Open").length || 0;
-
-  // --- Products ---
-  const { products, loading: productsLoading, error: productsError } = useContext(ProductContext);
-
-  // --- Period Filter ---
   const [period, setPeriod] = useState("monthly");
-  const filteredChartData = useMemo(() => filterIncomeData(period), [period]);
 
-  // --- Order Filter for Interactive Status Overview ---
-  const [orderFilter, setOrderFilter] = useState("all");
-  const filteredOrders = useMemo(() => {
-    if (orderFilter === "all") return ordersData.slice(-5);
-    return ordersData.filter((o) => o.status === orderFilter).slice(-5);
-  }, [orderFilter]);
-
-  // --- Stats ---
+  // -----------------------------
+  // SAFE DATA ENGINE (SHOPIFY STYLE)
+  // -----------------------------
   const stats = useMemo(() => {
-    if (period === "yearly") return getYearlyTotals();
-    return filteredChartData.reduce(
-      (acc, curr) => {
-        acc.income += curr.income || 0;
-        acc.newCustomers += curr.newCustomers || 0;
-        acc.orders += curr.orders || 0;
-        return acc;
+    const totals = getOrdersTotals() || {};
+    const trendData = getMonthlyOrderTrend() || [];
+    const comparison = getMonthlyComparison() || {};
+
+    const current = comparison.current || {};
+    const previous = comparison.previous || {};
+
+    return {
+      revenue: totals.totalRevenue || 0,
+      orders: totals.totalOrders || 0,
+      items: totals.totalItems || 0,
+      statusCounts: totals.statusCounts || {},
+
+      trends: {
+        revenue: getChange(current.revenue || 0, previous.revenue || 0),
+        orders: getChange(current.orders || 0, previous.orders || 0),
+        items: getChange(current.items || 0, previous.items || 0),
       },
-      { income: 0, newCustomers: 0, orders: 0 }
-    );
-  }, [filteredChartData, period]);
 
-  // --- Customer Stats ---
-  const customerStats = useMemo(() => {
-    const totalCustomers = customersData.length;
-    const topSpender = customersData.reduce(
-      (prev, curr) => (curr.totalSpent > prev.totalSpent ? curr : prev),
-      customersData[0] || {}
-    );
-    return { totalCustomers, topSpender };
-  }, []);
+      sparklines: {
+        revenue: trendData.map((d) => d?.revenue || 0),
+        orders: trendData.map((d) => d?.orders || 0),
+        items: trendData.map((d) => d?.items || 0),
+      },
 
-  const formatCurrency = (val) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
+      chartData: trendData,
+    };
+  }, []); 
+
+  // -----------------------------
+  // SAFE TOP STATUS
+  // -----------------------------
+  const topStatus = useMemo(() => {
+    const entries = Object.entries(stats.statusCounts || {});
+    if (!entries.length) return null;
+
+    return entries.sort((a, b) => b[1] - a[1])[0];
+  }, [stats.statusCounts]);
 
   return (
-    <div className="p-6 lg:p-8 space-y-8 bg-gray-900 min-h-screen text-gray-100">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400">Overview of your store performance</p>
-      </div>
+    <div className="min-h-screen bg-linear-to-br from-gray-950 via-gray-900 to-black text-white p-6 space-y-8">
 
-      {/* Period Filter */}
-      <div className="flex gap-2">
-        {PERIODS.map((p) => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`px-4 py-1 rounded-full text-sm capitalize transition
-              ${period === p ? "bg-green-500 text-black font-semibold" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
+      {/* HEADER */}
+      <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Enterprise Analytics
+          </h1>
+          <p className="text-gray-400 text-sm">
+            Advanced performance monitoring & insights
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm"
           >
-            {p}
-          </button>
-        ))}
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        <StatCard title={`Income (${period})`} value={stats.income} change={12} type="currency" />
-        <StatCard title={`New Customers (${period})`} value={stats.newCustomers} change={5} type="number" />
-        <StatCard title="Orders Today" value={totals.totalOrders} change={0} type="number" />
-        <StatCard title="Open Tickets" value={openTickets} change={0} type="number" />
-        <StatCard title="Total Customers" value={customerStats.totalCustomers} change={2} type="number" />
-      </div>
-
-      {/* Interactive Order Status Overview */}
-      <div className="bg-gray-800 p-6 rounded-2xl shadow-lg cursor-pointer">
-        <h3 className="text-lg font-semibold text-white mb-4">Order Status Overview</h3>
-        <div className="flex flex-col gap-3">
-          {["Processing", "Shipped", "Delivered", "Cancelled"].map((status) => {
-            const count = ordersData.filter((o) => o.status === status).length;
-            const total = ordersData.length || 1;
-            const percent = Math.round((count / total) * 100);
-            const bgColor =
-              status === "Processing"
-                ? "bg-yellow-500"
-                : status === "Shipped"
-                  ? "bg-blue-500"
-                  : status === "Delivered"
-                    ? "bg-green-500"
-                    : "bg-red-500";
-
-            return (
-              <div
-                key={status}
-                className="flex flex-col hover:opacity-80 transition"
-                onClick={() => setOrderFilter(status)}
-              >
-                <div className="flex justify-between mb-1">
-                  <span className="text-gray-300 text-sm font-medium">{status}</span>
-                  <span className="text-gray-400 text-sm">{count} orders</span>
-                </div>
-                <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className={`${bgColor} h-2 rounded-full transition-all duration-300`}
-                    style={{ width: `${percent}%` }}
-                  ></div>
-                </div>
-              </div>
-            );
-          })}
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
 
           <button
             onClick={() => navigate("/orders")}
-            className="mt-3 px-4 py-1 bg-green-500 text-black rounded-full text-sm font-semibold hover:bg-green-600 transition"
+            className="bg-green-500 hover:bg-green-600 px-5 py-2.5 rounded-xl"
           >
-            View All Orders
+            Orders
+          </button>
+
+          <button
+            onClick={() => navigate("/reports")}
+            className="bg-gray-800 hover:bg-gray-700 px-5 py-2.5 rounded-xl"
+          >
+            Reports
           </button>
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <Motion.div
-            key={period}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800 p-6 rounded-2xl shadow-lg"
-          >
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Income & Customers ({period})
-            </h3>
-            <IncomeChart data={filteredChartData} period={period} />
-          </Motion.div>
+      {/* KPI GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-          {/* Recent Orders Table */}
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg overflow-x-auto">
-            <div className="flex justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Recent Orders</h3>
-              <button
-                onClick={() => navigate("/orders")}
-                className="text-green-400 text-sm hover:underline"
-              >
-                View all
-              </button>
-            </div>
-            <table className="w-full text-sm text-gray-300 border-separate border-spacing-y-2">
-              <thead className="text-gray-400">
-                <tr>
-                  <th className="px-4 py-2 text-left">Order ID</th>
-                  <th className="px-4 py-2 text-left">Customer</th>
-                  <th className="px-4 py-2 text-left">Items</th>
-                  <th className="px-4 py-2 text-left">Total</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-left">Created</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((o) => (
-                  <tr key={o.id} className="bg-gray-700 hover:bg-gray-600 cursor-pointer">
-                    <td className="px-4 py-2">{o.id}</td>
-                    <td className="px-4 py-2">{o.customer}</td>
-                    <td className="px-4 py-2">{o.items}</td>
-                    <td className="px-4 py-2">{formatCurrency(o.total)}</td>
-                    <td className="px-4 py-2">{o.status}</td>
-                    <td className="px-4 py-2">{o.createdAt}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <StatCard
+          title="Revenue"
+          value={stats.revenue}
+          change={stats.trends.revenue}
+          sparklineData={stats.sparklines.revenue}
+        />
 
-        {/* Right Column */}
-        <div className="flex flex-col gap-6">
-          {/* Popular Products */}
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg sticky top-24">
-            <h3 className="text-lg font-semibold text-white mb-4">Popular Products</h3>
-            {productsLoading && <p className="text-gray-300">Loading products...</p>}
-            {productsError && <p className="text-red-400">Error: {productsError}</p>}
-            {!productsLoading && !productsError && products.length === 0 && (
-              <p className="text-gray-300">No products available</p>
-            )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {products.slice(0, 4).map((p) => (
-                <div
-                  key={p.id}
-                  className="bg-gray-700 p-3 rounded-xl hover:scale-105 transition cursor-pointer"
-                >
-                  <img
-                    src={getCloudinaryURL(p.imageId, 150, 150)}
-                    alt={p.title}
-                    className="w-full h-24 object-cover rounded-lg mb-2"
-                  />
-                  <h4 className="text-white text-sm font-medium truncate">{p.title}</h4>
-                  <p className="text-gray-300 text-xs">{p.category}</p>
-                  <p className="text-green-400 font-semibold mt-1">
-                    {formatCurrency(p.price)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+        <StatCard
+          title="Orders"
+          value={stats.orders}
+          type="number"
+          change={stats.trends.orders}
+          sparklineData={stats.sparklines.orders}
+        />
 
-          {/* Top Customers */}
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg sticky top-96">
-            <h3 className="text-lg font-semibold text-white mb-4">Top Customers</h3>
-            {customersData.slice(0, 4).map((c) => (
-              <div
-                key={c.id}
-                className="flex items-center gap-3 mb-3 cursor-pointer hover:bg-gray-700 p-2 rounded-lg transition"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate">{c.name}</p>
-                  <p className="text-gray-400 text-sm truncate">{c.email}</p>
-                </div>
-                <p className="text-yellow-400 font-semibold">{formatCurrency(c.totalSpent)}</p>
-              </div>
-            ))}
-            <button
-              onClick={() => navigate("/customers")}
-              className="text-green-400 text-sm hover:underline mt-2"
-            >
-              View all customers
-            </button>
+        <StatCard
+          title="Items Sold"
+          value={stats.items}
+          type="number"
+          change={stats.trends.items}
+          sparklineData={stats.sparklines.items}
+        />
+
+        <div className="p-5 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between">
+          <div>
+            <p className="text-gray-400 text-sm">Top Status</p>
+            <h2 className="text-xl font-semibold mt-1">
+              {topStatus ? topStatus[0] : "No data"}
+            </h2>
           </div>
+          <p className="text-xs text-gray-500 mt-2">
+            {topStatus ? `${topStatus[1]} orders` : "Empty dataset"}
+          </p>
         </div>
       </div>
+
+      {/* INSIGHTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <InsightCard title="Revenue Insight" value={stats.trends.revenue} />
+        <InsightCard title="Orders Insight" value={stats.trends.orders} />
+        <InsightCard title="Items Insight" value={stats.trends.items} />
+      </div>
+
+      {/* CHARTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div className="bg-gray-900 border border-gray-800 p-5 rounded-2xl">
+          <h2 className="text-lg font-semibold mb-4">
+            Revenue vs Orders
+          </h2>
+
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={stats.chartData || []}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="month" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="revenue" stroke="#10B981" />
+              <Line type="monotone" dataKey="orders" stroke="#3B82F6" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-gray-900 border border-gray-800 p-5 rounded-2xl">
+          <h2 className="text-lg font-semibold mb-4">
+            Items Distribution
+          </h2>
+
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={stats.chartData || []}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="month" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip />
+              <Bar dataKey="items" fill="#F59E0B" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div className="flex justify-between items-center bg-linear-to-r from-green-600/20 to-green-400/10 border border-green-500/20 p-6 rounded-2xl">
+        <div>
+          <h3 className="font-semibold text-lg">Enterprise Insights</h3>
+          <p className="text-gray-400 text-sm">
+            Monitor, analyze, and scale your business efficiently
+          </p>
+        </div>
+
+        <button
+          onClick={() => navigate("/reports")}
+          className="bg-green-500 hover:bg-green-600 px-5 py-2.5 rounded-xl"
+        >
+          Explore Reports
+        </button>
+      </div>
+
+    </div>
+  );
+}
+
+// -----------------------------
+// SAFE INSIGHT CARD
+// -----------------------------
+function InsightCard({ title, value }) {
+  const safeValue = Number(value || 0);
+  const isPositive = safeValue >= 0;
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 p-4 rounded-xl">
+      <p className="text-gray-400 text-sm">{title}</p>
+
+      <p
+        className={`text-lg font-semibold mt-2 ${
+          isPositive ? "text-green-400" : "text-red-400"
+        }`}
+      >
+        {isPositive ? "▲" : "▼"} {Math.abs(safeValue).toFixed(1)}%
+      </p>
+
+      <p className="text-xs text-gray-500 mt-1">
+        {isPositive ? "Growth detected" : "Decline detected"}
+      </p>
     </div>
   );
 }

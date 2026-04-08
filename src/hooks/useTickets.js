@@ -1,4 +1,3 @@
-// src/hooks/useTickets.js
 import { useContext } from "react";
 import TicketContext from "../context/TicketContext.js";
 

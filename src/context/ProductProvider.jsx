@@ -1,4 +1,3 @@
-// src/context/ProductProvider.jsx
 import { useState, useEffect } from "react";
 import ProductContext from "./ProductContext.js"; // ✅ default import
 

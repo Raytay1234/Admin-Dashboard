@@ -1,51 +1,89 @@
-// src/pages/Tickets.jsx
 import { motion as Motion } from "framer-motion";
 import { useMemo } from "react";
 import TicketTable from "../components/TicketTable";
-import StatCard from "../components/StatCard";
 import useTickets from "../hooks/useTickets";
 
 export default function Tickets() {
-  // Pull tickets and update functions from the shared context
-  const { tickets, updateStatus } = useTickets();
+  const { tickets = [], updateStatus } = useTickets();
 
-  // Compute stats for dashboard cards
+  // ---------------- STATS ----------------
   const stats = useMemo(() => {
-    const counts = { Open: 0, Pending: 0, Resolved: 0, Closed: 0 };
-    tickets.forEach((t) => counts[t.status] = (counts[t.status] || 0) + 1);
-    return counts;
+    const base = {
+      Open: 0,
+      Pending: 0,
+      Resolved: 0,
+      Closed: 0,
+    };
+
+    tickets.forEach((t) => {
+      const key = t?.status || "Open";
+      base[key] = (base[key] || 0) + 1;
+    });
+
+    return base;
   }, [tickets]);
 
+  // ---------------- STATUS COLORS ----------------
+  const statusStyles = {
+    Open: "from-blue-500/20 to-blue-600/10 text-blue-400 border-blue-500/30",
+    Pending: "from-yellow-500/20 to-yellow-600/10 text-yellow-400 border-yellow-500/30",
+    Resolved: "from-green-500/20 to-green-600/10 text-green-400 border-green-500/30",
+    Closed: "from-gray-500/20 to-gray-600/10 text-gray-400 border-gray-500/30",
+  };
+
   return (
-    <div className="p-6 lg:p-8 space-y-6 bg-gray-900 min-h-screen text-gray-100">
-      {/* Header */}
+    <div className="p-6 lg:p-8 space-y-8 bg-linear-to-br from-gray-950 via-gray-900 to-black min-h-screen text-white">
+
+      {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold text-white">All Tickets</h1>
-        <p className="text-gray-400 text-sm">
-          View and manage customer support tickets
+        <h1 className="text-3xl font-bold tracking-tight">
+          Support Tickets
+        </h1>
+        <p className="text-gray-400 mt-1">
+          Monitor and manage all customer support requests
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* STATS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {Object.entries(stats).map(([status, count]) => (
-          <StatCard
+          <Motion.div
             key={status}
-            title={`${status} Tickets`}
-            value={count}
-            type="number"
-          />
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.03 }}
+            className={`p-5 rounded-2xl border backdrop-blur-xl bg-linear-to-br ${statusStyles[status]} shadow-lg`}
+          >
+            <p className="text-sm opacity-80">{status}</p>
+            <p className="text-2xl font-bold mt-2">{count}</p>
+          </Motion.div>
         ))}
       </div>
 
-      {/* Ticket Table */}
+      {/* TABLE CARD */}
       <Motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-gray-800 rounded-2xl shadow-lg overflow-x-auto"
+        className="bg-gray-900/80 backdrop-blur-xl border border-gray-700 rounded-2xl shadow-xl overflow-hidden"
       >
-        <TicketTable tickets={tickets} onUpdate={updateStatus} isAdmin />
+        {/* TABLE HEADER */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <h2 className="text-lg font-semibold">All Tickets</h2>
+
+          <span className="text-sm text-gray-400">
+            {tickets.length} total
+          </span>
+        </div>
+
+        {/* TABLE */}
+        <div className="overflow-x-auto">
+          <TicketTable
+            tickets={tickets}
+            onUpdate={updateStatus}
+            isAdmin
+          />
+        </div>
       </Motion.div>
     </div>
   );

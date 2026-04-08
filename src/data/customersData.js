@@ -1,6 +1,3 @@
-// src/data/customersData.js
-
-// Base customers
 const baseCustomers = [
   { id: 1, name: "Alice Johnson", email: "alice@example.com", orders: 12, totalSpent: 1240 },
   { id: 2, name: "Bob Smith", email: "bob@example.com", orders: 8, totalSpent: 980 },
@@ -10,17 +7,17 @@ const baseCustomers = [
   { id: 6, name: "Fiona Green", email: "fiona@example.com", orders: 11, totalSpent: 1850 },
 ];
 
-// Function to generate infinite-like dataset
 export const generateCustomers = (count = 1000) => {
   const customers = [];
   for (let i = 0; i < count; i++) {
-    const base = baseCustomers[i % baseCustomers.length]; // Cycle through base data
+    const base = baseCustomers[i % baseCustomers.length]; 
+    
     customers.push({
       id: i + 1,
-      name: `${base.name.split(" ")[0]} ${base.name.split(" ")[1]} ${i + 1}`, // Unique name
-      email: `user${i + 1}@example.com`, // Unique email
-      orders: base.orders + (i % 10), // Slight variation
-      totalSpent: base.totalSpent + (i * 10), // Slight variation
+      name: `${base.name.split(" ")[0]} ${base.name.split(" ")[1]} ${i + 1}`, 
+      email: `user${i + 1}@example.com`, 
+      orders: base.orders + (i % 10),
+      totalSpent: base.totalSpent + (i * 10), 
       status: Math.random() > 0.5 ? "Active" : "Inactive",
       joined: new Date(
         Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 365)
@@ -30,6 +27,4 @@ export const generateCustomers = (count = 1000) => {
   }
   return customers;
 };
-
-// Default export for convenience
 export const customersData = generateCustomers();

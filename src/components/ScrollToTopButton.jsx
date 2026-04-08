@@ -1,4 +1,3 @@
-// src/components/ScrollToTopButton.jsx
 import { useState, useEffect } from "react";
 import { ChevronUp } from "lucide-react";
 

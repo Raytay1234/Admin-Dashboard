@@ -1,4 +1,3 @@
-// src/components/ProductSkeleton.jsx
 export default function ProductSkeleton() {
   return (
     <div className="bg-gray-800 animate-pulse p-4 rounded-xl flex flex-col gap-3">

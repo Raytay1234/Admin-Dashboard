@@ -1,4 +1,3 @@
-// src/context/TicketProvider.jsx
 import { useEffect, useState } from "react";
 import TicketContext from "./TicketContext.js";
 import { loadTickets, createTicketObject, createCommentObject } from "../utils/tickets.js";

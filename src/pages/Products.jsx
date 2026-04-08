@@ -1,174 +1,262 @@
-import { useContext, useState, useMemo, useRef, useEffect } from "react";
+import {
+  useContext,
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+} from "react";
+
 import ProductContext from "../context/ProductContext.js";
 import { useAuth } from "../context/useAuth.js";
+
 import ProductSkeleton from "../components/ProductSkeleton.jsx";
 import ScrollToTopButton from "../components/ScrollToTopButton.jsx";
-import { getCloudinaryURL } from "../utils/cloudinary.js";
-import { uploadToCloudinary } from "../utils/cloudinaryUpload.js";
+import getProductImage from "../utils/productImages.js";
 
-const ITEMS_PER_LOAD = 6;
+const PAGE_SIZE = 12;
 
 export default function Products() {
-  const { products, removeProduct, updateProduct, addProduct, loading } = useContext(ProductContext);
+  const { products, updateProduct, addProduct, loading } =
+    useContext(ProductContext);
+
   const { isAdmin } = useAuth();
 
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
-  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    price: 0,
+    stock: 0,
+    category: "uncategorized",
+    images: [],
+  });
+
+  const [hoveredId, setHoveredId] = useState(null);
+
   const loaderRef = useRef(null);
+  const observerRef = useRef(null);
 
-  /* =========================
-     FILTERING
-  ========================== */
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) =>
-      p.title.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [products, search]);
+  // PAGINATION
+  const paginatedProducts = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return (products || []).slice(start, start + PAGE_SIZE);
+  }, [products, page]);
 
-  /* =========================
-     INFINITE SCROLL
-  ========================== */
+  const totalPages = Math.ceil((products || []).length / PAGE_SIZE);
+
+  // IMAGE FALLBACK
+  const getSafeImage = (p) =>
+    p.images?.[0]?.preview ||
+    p.images?.[0] ||
+    getProductImage(p?.category);
+
+  // IMAGE UPLOAD
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+
+    const newImages = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setEditForm((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), ...newImages],
+    }));
+  };
+
+  // INFINITE SCROLL
   useEffect(() => {
     if (!loaderRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisibleCount((prev) =>
-            Math.min(prev + ITEMS_PER_LOAD, filteredProducts.length)
-          );
-        }
-      },
-      { threshold: 1 }
-    );
-    observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [filteredProducts]);
 
-  /* =========================
-     LOADING UI
-  ========================== */
-  if (loading) {
-    return (
-      <div className="p-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: ITEMS_PER_LOAD }).map((_, i) => (
-            <ProductSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    );
-  }
+    if (observerRef.current) observerRef.current.disconnect();
 
-  /* =========================
-     MAIN UI
-  ========================== */
+    observerRef.current = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && page < totalPages) {
+        setPage((p) => p + 1);
+      }
+    });
+
+    observerRef.current.observe(loaderRef.current);
+
+    return () => observerRef.current?.disconnect();
+  }, [page, totalPages]);
+
+  // EDIT
+  const openEdit = (p) => {
+    setEditingProduct(p);
+    setEditForm({
+      title: p?.title || "",
+      price: Number(p?.price) || 0,
+      stock: Number(p?.stock) || 0,
+      category: p?.category || "uncategorized",
+      images: p?.images || [],
+    });
+  };
+
+  const saveEdit = () => {
+    if (!editingProduct) return;
+
+    if (editForm.price < 0 || editForm.stock < 0) {
+      alert("Price and stock must be positive");
+      return;
+    }
+
+    updateProduct(editingProduct.id, {
+      ...editForm,
+      price: Number(editForm.price),
+      stock: Number(editForm.stock),
+    });
+
+    setEditingProduct(null);
+  };
+
+  const addNewProduct = () => {
+    addProduct({
+      title: `New Product ${Date.now()}`,
+      price: 0,
+      stock: 0,
+      category: "electronics",
+      images: [],
+    });
+  };
+
   return (
-    <div className="p-6 lg:p-10 space-y-10 bg-gray-950 min-h-screen text-gray-100">
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <h1 className="text-4xl font-bold">Product Management</h1>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-6 space-y-6">
+      {/* HEADER */}
+      <div className="flex justify-between">
+        <h1 className="text-3xl font-bold">Products</h1>
 
         {isAdmin && (
-          <div className="flex gap-4 items-center">
-            {/* Add product with empty image */}
-            <button
-              onClick={() =>
-                addProduct({
-                  title: `New Product ${Date.now()}`,
-                  price: 0,
-                  stock: 0,
-                  category: "uncategorized",
-                  imageId: "",
-                  promoted: false,
-                })
-              }
-              className="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-xl font-semibold shadow-md"
-            >
-              + Add Product
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                try {
-                  const publicId = await uploadToCloudinary(file);
-                  addProduct({
-                    title: file.name,
-                    price: 0,
-                    stock: 0,
-                    category: "uncategorized",
-                    imageId: publicId,
-                    promoted: false,
-                  });
-                } catch (err) {
-                  alert("Image upload failed: " + err.message);
-                }
-              }}
-              className="px-4 py-2 rounded-lg bg-gray-700 text-gray-100 cursor-pointer"
-            />
-          </div>
+          <button
+            onClick={addNewProduct}
+            className="bg-indigo-600 px-4 py-2 rounded-xl"
+          >
+            + Add Product
+          </button>
         )}
       </div>
 
-      {/* Search */}
-      <input
-        placeholder="Search products..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="bg-gray-900 p-3 rounded-lg border border-gray-700 w-64"
-      />
+      {/* GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading
+          ? Array.from({ length: PAGE_SIZE }).map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))
+          : paginatedProducts.map((p) => (
+              <div
+                key={p.id}
+                className="bg-gray-900 rounded-xl overflow-hidden"
+                onMouseEnter={() => setHoveredId(p.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                {/* IMAGE SWAP */}
+                <img
+                  src={
+                    hoveredId === p.id && p.images?.[1]
+                      ? p.images[1].preview || p.images[1]
+                      : getSafeImage(p)
+                  }
+                  className="h-48 w-full object-cover transition duration-300"
+                />
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-6">
-        {filteredProducts.slice(0, visibleCount).map((p) => (
-          <div
-            key={p.id}
-            className={`bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:scale-[1.02] transition duration-300 flex flex-col ${
-              p.promoted ? "border-2 border-yellow-400" : ""
-            }`}
-          >
-            <img
-              src={getCloudinaryURL(p.imageId)}
-              alt={p.title}
-              loading="lazy"
-              className="h-52 w-full object-cover"
-            />
-            <div className="p-5 flex flex-col flex-1">
-              <h3 className="font-semibold text-lg truncate">{p.title}</h3>
-              <p className="font-bold text-xl mb-1">${p.price.toLocaleString()}</p>
-              <p className={`text-sm mb-4 ${p.stock > 0 ? "text-green-400" : "text-red-400"}`}>
-                {p.stock > 0 ? `${p.stock} in stock` : "Out of stock"}
-              </p>
+                <div className="p-4 space-y-2">
+                  <h3>{p.title}</h3>
+                  <p>${p.price}</p>
+                  <p>Stock: {p.stock}</p>
 
-              {isAdmin && (
-                <div className="mt-auto flex flex-col gap-2">
-                  <button
-                    onClick={() => removeProduct(p.id)}
-                    className="bg-red-600 hover:bg-red-500 py-2 rounded-lg text-sm"
-                  >
-                    Remove
-                  </button>
-
-                  <button
-                    onClick={() => updateProduct(p.id, { promoted: !p.promoted })}
-                    className={`py-2 rounded-lg text-sm ${
-                      p.promoted
-                        ? "bg-yellow-500 hover:bg-yellow-400 text-black"
-                        : "bg-gray-700 hover:bg-gray-600 text-white"
-                    }`}
-                  >
-                    {p.promoted ? "Remove Promotion" : "Promote"}
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => openEdit(p)}
+                      className="bg-blue-600 px-2 py-1 rounded"
+                    >
+                      Edit
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
+              </div>
+            ))}
       </div>
 
-      {visibleCount < filteredProducts.length && <div ref={loaderRef} className="h-12 mt-10" />}
+      {/* LOAD MORE */}
+      {page < totalPages && <div ref={loaderRef} className="h-10" />}
+
+      {/* EDIT MODAL */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black/70 flex justify-center items-center">
+          <div className="bg-gray-900 p-6 rounded-xl w-96 space-y-3">
+            <h2>Edit Product</h2>
+
+            <input
+              className="w-full p-2 bg-gray-800"
+              value={editForm.title}
+              onChange={(e) =>
+                setEditForm({ ...editForm, title: e.target.value })
+              }
+            />
+
+            {/* PRICE */}
+            <input
+              type="number"
+              className="w-full p-2 bg-gray-800"
+              value={editForm.price}
+              onChange={(e) =>
+                setEditForm({
+                  ...editForm,
+                  price: Number(e.target.value),
+                })
+              }
+            />
+
+            {/* STOCK */}
+            <input
+              type="number"
+              className="w-full p-2 bg-gray-800"
+              value={editForm.stock}
+              onChange={(e) =>
+                setEditForm({
+                  ...editForm,
+                  stock: Number(e.target.value),
+                })
+              }
+            />
+
+            {/* IMAGE UPLOAD */}
+            <input type="file" multiple onChange={handleImageUpload} />
+
+            {/* PREVIEW */}
+            <div className="flex gap-2 flex-wrap">
+              {editForm.images?.map((img, i) => (
+                <div key={i} className="relative">
+                  <img
+                    src={img.preview || img}
+                    className="w-16 h-16 object-cover"
+                  />
+                  <button
+                    onClick={() =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        images: prev.images.filter((_, idx) => idx !== i),
+                      }))
+                    }
+                    className="absolute top-0 right-0 bg-red-600 px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={saveEdit}
+              className="bg-green-600 w-full py-2"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      )}
 
       <ScrollToTopButton />
     </div>

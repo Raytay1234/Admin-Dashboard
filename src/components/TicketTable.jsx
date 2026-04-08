@@ -1,6 +1,4 @@
-// src/components/TicketTable.jsx
 import React from "react";
-
 export default function TicketTable({ tickets = [], onUpdate }) {
   const statuses = ["Open", "Pending", "Resolved", "Closed"];
 

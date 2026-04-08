@@ -1,4 +1,3 @@
-
 const products = [
   {
     id: 1,
@@ -6,8 +5,8 @@ const products = [
     price: 120,
     stock: 15,
     category: "electronics",
-    imageId: "products/wireless_headphones",
     promoted: false,
+    imageUrl: "", // will store fetched image
   },
   {
     id: 2,
@@ -15,8 +14,8 @@ const products = [
     price: 90,
     stock: 8,
     category: "electronics",
-    imageId: "products/smart_watch",
     promoted: false,
+    imageUrl: "",
   },
   {
     id: 3,
@@ -24,8 +23,8 @@ const products = [
     price: 75,
     stock: 0,
     category: "fashion",
-    imageId: "products/running_shoes",
     promoted: true,
+    imageUrl: "",
   },
 ];
 

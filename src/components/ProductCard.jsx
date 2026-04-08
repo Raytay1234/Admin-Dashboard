@@ -1,11 +1,10 @@
 import { useState, useContext } from "react";
 import ProductContext from "../context/ProductContext.js";
-import { CartContext } from "../context/CartContext.js"; // ✅ ADD
-import { getCloudinaryURL } from "../utils/cloudinary.js";
+import { CartContext } from "../context/CartContext.js";
 
 export default function ProductCard({ product, isAdmin = false, formatPrice }) {
   const { updateProduct } = useContext(ProductContext);
-  const { addToCart } = useContext(CartContext); // ✅ ADD
+  const { addToCart } = useContext(CartContext);
 
   const [editing, setEditing] = useState(false);
   const [price, setPrice] = useState(product.price);
@@ -25,7 +24,7 @@ export default function ProductCard({ product, isAdmin = false, formatPrice }) {
       transition transform hover:-translate-y-1 hover:shadow-lg hover:bg-gray-800"
     >
       <img
-        src={getCloudinaryURL(product.imageId, 300, 200)}
+        src={product.imageUrl || `https://via.placeholder.com/300?text=${product.category || "Product"}`}
         alt={product.title || product.name}
         className="w-full h-40 object-cover rounded-lg"
       />
@@ -36,9 +35,7 @@ export default function ProductCard({ product, isAdmin = false, formatPrice }) {
           {product.title || product.name}
         </p>
 
-        <span className="text-sm text-gray-400 truncate">
-          {product.category}
-        </span>
+        <span className="text-sm text-gray-400 truncate">{product.category}</span>
 
         {editing ? (
           <>
@@ -67,24 +64,19 @@ export default function ProductCard({ product, isAdmin = false, formatPrice }) {
           <>
             {/* Price */}
             <span className="font-medium">
-              {formatPrice
-                ? formatPrice(product.price)
-                : `$${product.price}`}
+              {formatPrice ? formatPrice(product.price) : `$${product.price}`}
             </span>
 
             {/* Stock */}
             <span
-              className={`text-sm font-medium ${product.stock > 0
-                  ? "text-green-400"
-                  : "text-red-400"
-                }`}
+              className={`text-sm font-medium ${
+                product.stock > 0 ? "text-green-400" : "text-red-400"
+              }`}
             >
-              {product.stock > 0
-                ? `${product.stock} in stock`
-                : "Out of stock"}
+              {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
             </span>
 
-            {/* ✅ USER BUTTON */}
+            {/* USER BUTTON */}
             {!isAdmin && product.stock > 0 && (
               <button
                 onClick={() => addToCart(product)}
@@ -94,7 +86,7 @@ export default function ProductCard({ product, isAdmin = false, formatPrice }) {
               </button>
             )}
 
-            {/* ✅ ADMIN BUTTON */}
+            {/* ADMIN BUTTON */}
             {isAdmin && (
               <button
                 onClick={() => setEditing(true)}

@@ -1,9 +1,8 @@
-// src/pages/Orders.jsx
 import { useState, useMemo } from "react";
 import { motion as Motion } from "framer-motion";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { filterOrders, filterOrdersByDate } from "../data/orders.js";
+import { filterOrders, filterOrdersByDate } from "../data/ordersData.js";
 
 const STATUS_COLORS = {
   Processing: "bg-yellow-500 text-black",

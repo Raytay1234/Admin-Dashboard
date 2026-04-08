@@ -1,184 +1,240 @@
-// src/pages/Profile.jsx
-import { useState } from "react";
+import { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth.js";
+import { motion as Motion } from "framer-motion";
 
 export default function Profile() {
-    const navigate = useNavigate();
-    const { user, logout, isAdmin } = useAuth(); // ✅ get admin info
-    const [editing, setEditing] = useState(false);
-    const [formData, setFormData] = useState({
-        name: user?.name || "",
-        email: user?.email || "",
-        avatar: user?.avatar || "",
-        password: "",
-    });
-    const [successMsg, setSuccessMsg] = useState("");
+  const navigate = useNavigate();
+  const { user, logout, isAdmin } = useAuth();
 
-    const joinDate = user?.joinedAt || new Date().toISOString().split("T")[0];
+  const [editing, setEditing] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
-    // --- Redirect or display message if not logged in ---
-    if (!user) {
-        return (
-            <div className="p-6 text-gray-100">
-                <p>You are not logged in.</p>
-                <button
-                    onClick={() => navigate("/login")}
-                    className="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                >
-                    Go to Login
-                </button>
-            </div>
-        );
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    avatar: user?.avatar || "",
+    password: "",
+  });
+
+  const joinDate =
+    user?.joinedAt || new Date().toISOString().split("T")[0];
+
+  if (!user) {
+    return (
+      <div className="p-6 text-gray-100">
+        <p>You are not logged in.</p>
+        <button
+          onClick={() => navigate("/login")}
+          className="mt-3 px-4 py-2 bg-green-600 rounded-md"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    const updatedUser = {
+      ...user,
+      name: formData.name,
+      email: formData.email,
+      avatar: formData.avatar,
+    };
+
+    if (formData.password) {
+      updatedUser.password = formData.password;
     }
 
-    // --- Handlers ---
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
 
-    const handleSave = () => {
-        const updatedUser = {
-            ...user,
-            name: formData.name,
-            email: formData.email,
-            avatar: formData.avatar,
-        };
-        if (formData.password) updatedUser.password = formData.password;
+    setSuccessMsg("Profile updated successfully!");
+    setEditing(false);
+    setFormData((prev) => ({ ...prev, password: "" }));
 
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        setSuccessMsg("Profile updated successfully!");
-        setEditing(false);
-        setFormData((prev) => ({ ...prev, password: "" }));
+    window.dispatchEvent(new Event("storage"));
+    setTimeout(() => setSuccessMsg(""), 3000);
+  };
 
-        // Refresh the app context so Sidebar and other components show updated info
-        window.dispatchEvent(new Event("storage"));
+  const handleCancel = () => {
+    setEditing(false);
+    setFormData({
+      name: user?.name || "",
+      email: user?.email || "",
+      avatar: user?.avatar || "",
+      password: "",
+    });
+  };
 
-        setTimeout(() => setSuccessMsg(""), 3000);
-    };
+  return (
+    <div className="p-6 lg:p-10 bg-linear-to-br from-gray-950 via-gray-900 to-black min-h-screen text-white space-y-8">
 
-    const handleCancel = () => {
-        setEditing(false);
-        setFormData({
-            name: user?.name || "",
-            email: user?.email || "",
-            avatar: user?.avatar || "",
-            password: "",
-        });
-    };
+      {/* HEADER */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+        <p className="text-gray-400 mt-1">
+          Manage your account settings and profile
+        </p>
+      </div>
 
-    return (
-        <div className="p-6 lg:p-8 space-y-6 text-gray-100">
-            <h1 className="text-3xl font-bold mb-6">Profile</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* LEFT: Avatar & Info */}
-                <div className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col items-center">
-                    <div className="relative mb-4">
-                        <img
-                            src={formData.avatar || `https://i.pravatar.cc/150?u=${formData.email}`}
-                            alt={formData.name}
-                            className="w-32 h-32 rounded-full border-4 border-green-600 object-cover"
-                        />
-                        {isAdmin && (
-                            <span className="absolute top-0 right-0 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
-                                ADMIN
-                            </span>
-                        )}
-                    </div>
+        {/* LEFT - PROFILE CARD */}
+        <Motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gray-900/80 backdrop-blur-xl border border-gray-700 p-6 rounded-2xl shadow-xl flex flex-col items-center"
+        >
+          <div className="relative">
+            <img
+              src={
+                formData.avatar ||
+                `https://i.pravatar.cc/150?u=${formData.email}`
+              }
+              alt={formData.name}
+              className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-500"
+            />
 
-                    {editing && (
-                        <input
-                            type="text"
-                            name="avatar"
-                            placeholder="Avatar URL"
-                            value={formData.avatar}
-                            onChange={handleChange}
-                            className="w-full p-2 mb-2 rounded-md text-black"
-                        />
-                    )}
+            {editing && (
+              <input
+                type="text"
+                name="avatar"
+                value={formData.avatar}
+                onChange={handleChange}
+                placeholder="Paste image URL..."
+                className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-56 p-1 text-xs rounded bg-gray-800 border border-gray-600"
+              />
+            )}
+          </div>
 
-                    <h2 className="text-xl font-semibold">{formData.name}</h2>
-                    <p className="text-gray-400">{formData.email || "No email set"}</p>
-                    <p className="text-gray-500 mt-1">
-                        Role:{" "}
-                        <span className={`font-medium ${isAdmin ? "text-green-400" : ""}`}>
-                            {user.role}
-                        </span>
-                    </p>
-                    <p className="text-gray-500 mt-1">
-                        Joined: <span className="font-medium">{joinDate}</span>
-                    </p>
-                    {isAdmin && (
-                        <p className="mt-2 text-green-400 font-medium text-sm">
-                            You have admin privileges
-                        </p>
-                    )}
-                </div>
+          <h2 className="text-xl font-semibold mt-4">
+            {formData.name}
+          </h2>
+          <p className="text-gray-400">{formData.email}</p>
 
-                {/* RIGHT: Editable Info & Actions */}
-                <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-4">
-                    <h3 className="text-lg font-semibold mb-2">Account Information</h3>
+          <div className="mt-3 flex gap-2">
+            <span className="px-3 py-1 text-xs rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+              {user.role}
+            </span>
 
-                    {["name", "email", "password"].map((field) => (
-                        <div key={field} className="flex flex-col">
-                            <label className="block text-gray-400 mb-1 capitalize">{field}</label>
-                            <input
-                                type={field === "password" ? "password" : "text"}
-                                name={field}
-                                value={formData[field]}
-                                onChange={handleChange}
-                                placeholder={field === "password" ? "Enter new password" : ""}
-                                disabled={!editing}
-                                className={`w-full p-2 rounded-md ${editing ? "text-black bg-gray-100" : "bg-gray-800 text-gray-300"
-                                    }`}
-                            />
-                        </div>
-                    ))}
+            {isAdmin && (
+              <span className="px-3 py-1 text-xs rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                Admin
+              </span>
+            )}
+          </div>
 
-                    {/* Success Message */}
-                    {successMsg && <p className="text-green-400 text-sm font-medium">{successMsg}</p>}
+          <p className="text-gray-500 text-sm mt-3">
+            Joined: {joinDate}
+          </p>
+        </Motion.div>
 
-                    {/* Actions */}
-                    <div className="flex gap-3 mt-4">
-                        {editing ? (
-                            <>
-                                <button
-                                    onClick={handleSave}
-                                    className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
-                                >
-                                    Save Changes
-                                </button>
-                                <button
-                                    onClick={handleCancel}
-                                    className="px-4 py-2 bg-gray-700 rounded-md text-white hover:bg-gray-600"
-                                >
-                                    Cancel
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={() => setEditing(true)}
-                                    className="px-4 py-2 bg-green-600 rounded-md text-white hover:bg-green-700"
-                                >
-                                    Edit Profile
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        logout();
-                                        navigate("/login");
-                                    }}
-                                    className="px-4 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
-                                >
-                                    Logout
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+        {/* RIGHT - FORM */}
+        <Motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="lg:col-span-2 bg-gray-900/80 backdrop-blur-xl border border-gray-700 p-6 rounded-2xl shadow-xl space-y-6"
+        >
+          <h3 className="text-lg font-semibold">Account Settings</h3>
+
+          {/* INPUTS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {["name", "email"].map((field) => (
+              <div key={field}>
+                <label className="text-gray-400 text-sm capitalize">
+                  {field}
+                </label>
+                <input
+                  type="text"
+                  name={field}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  disabled={!editing}
+                  className={`w-full mt-1 p-3 rounded-xl transition border ${
+                    editing
+                      ? "bg-gray-800 border-gray-600 focus:border-indigo-500"
+                      : "bg-gray-800/50 border-gray-700 text-gray-400"
+                  }`}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* PASSWORD */}
+          <div>
+            <label className="text-gray-400 text-sm">
+              New Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={!editing}
+              placeholder="Leave blank to keep current"
+              className={`w-full mt-1 p-3 rounded-xl border ${
+                editing
+                  ? "bg-gray-800 border-gray-600 focus:border-indigo-500"
+                  : "bg-gray-800/50 border-gray-700 text-gray-400"
+              }`}
+            />
+          </div>
+
+          {/* SUCCESS */}
+          {successMsg && (
+            <Motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-green-400 text-sm"
+            >
+              {successMsg}
+            </Motion.div>
+          )}
+
+          {/* ACTIONS */}
+          <div className="flex flex-wrap gap-3 pt-2">
+            {editing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="px-5 py-2 bg-gray-700 rounded-xl"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate("/login");
+                  }}
+                  className="px-5 py-2 bg-red-600 hover:bg-red-700 rounded-xl"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
+        </Motion.div>
+      </div>
+    </div>
+  );
 }

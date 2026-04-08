@@ -1,7 +1,7 @@
-// src/context/OrdersProvider.jsx
+
 import { useState, useEffect } from "react";
 import { OrderContext } from "./orderContext.js";
-import { ordersData as mockOrders } from "../data/orders.js"; // your mock orders generator
+import { ordersData as mockOrders } from "../data/ordersData.js"; // your mock orders generator
 
 export default function OrdersProvider({ children }) {
   const [orders, setOrders] = useState([]);

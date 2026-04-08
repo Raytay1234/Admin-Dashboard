@@ -1,4 +1,3 @@
-// src/components/OrdersTable.jsx
 import React from "react";
 import useOrders from "../hooks/useOrders.js";
 

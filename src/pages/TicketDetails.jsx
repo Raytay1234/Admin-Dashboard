@@ -1,4 +1,3 @@
-// src/pages/TicketDetails.jsx
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import Layout from "../components/Layout.jsx";

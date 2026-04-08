@@ -1,43 +1,67 @@
-// src/pages/Shop.jsx
 import { useContext, useMemo, useRef, useEffect, useState } from "react";
 import ProductContext from "../context/ProductContext.js";
 import ProductCard from "../components/ProductCard.jsx";
 import ProductSkeleton from "../components/ProductSkeleton.jsx";
-import { useAuth } from "../context/useAuth.js"; // ✅ get admin info
+import { useAuth } from "../context/useAuth.js";
+import getProductImage from "../utils/productImages.js";
 
 const ITEMS_PER_LOAD = 6;
 
 export default function Shop() {
   const { products, loading } = useContext(ProductContext);
-  const { isAdmin } = useAuth(); // ✅ check if admin
+  const { isAdmin } = useAuth();
 
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const loaderRef = useRef(null);
 
+  // ✅ FILTER PRODUCTS
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      const categoryMatch = category === "All" || p.category?.toLowerCase() === category.toLowerCase();
-      const searchMatch = p.title?.toLowerCase().includes(search.toLowerCase());
+      const categoryMatch =
+        category === "All" ||
+        p.category?.toLowerCase() === category.toLowerCase();
+
+      const searchMatch = p.title
+        ?.toLowerCase()
+        .includes(search.toLowerCase());
+
       return categoryMatch && searchMatch;
     });
   }, [products, category, search]);
 
-  const categories = ["All", ...new Set(products.map((p) => p.category).filter(Boolean))];
+  // ✅ CATEGORIES
+  const categories = useMemo(() => {
+    return [
+      "All",
+      ...new Set(products.map((p) => p.category).filter(Boolean)),
+    ];
+  }, [products]);
 
-  // Infinite scroll
+  // ✅ IMAGE MAP (NO STATE, NO EFFECT)
+  const productImages = useMemo(() => {
+    const map = {};
+    filteredProducts.forEach((p) => {
+      map[p.id] = getProductImage(p.category);
+    });
+    return map;
+  }, [filteredProducts]);
+
+  const getSafeImage = (p) =>
+    productImages[p.id] || getProductImage(p.category);
+
+  // ✅ INFINITE SCROLL
   useEffect(() => {
     if (!loaderRef.current) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + ITEMS_PER_LOAD, filteredProducts.length));
-        }
-      },
-      { threshold: 1 }
-    );
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisibleCount((prev) =>
+          Math.min(prev + ITEMS_PER_LOAD, filteredProducts.length)
+        );
+      }
+    });
 
     observer.observe(loaderRef.current);
     return () => observer.disconnect();
@@ -45,7 +69,8 @@ export default function Shop() {
 
   return (
     <div className="p-6 lg:p-8 bg-gray-900 min-h-screen text-white space-y-8">
-      {/* Search & Category Filters */}
+
+      {/* FILTERS */}
       <div className="flex gap-4 flex-wrap">
         <input
           placeholder="Search products..."
@@ -73,18 +98,26 @@ export default function Shop() {
         </select>
       </div>
 
-      {/* Product Grid */}
+      {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.slice(0, visibleCount).map((p) => (
-          <ProductCard key={p.id} product={p} isAdmin={isAdmin} />
+          <ProductCard
+            key={p.id}
+            product={{ ...p, imageUrl: getSafeImage(p) }}
+            isAdmin={isAdmin}
+          />
         ))}
 
         {loading &&
-          Array.from({ length: ITEMS_PER_LOAD }).map((_, i) => <ProductSkeleton key={i} />)}
+          Array.from({ length: ITEMS_PER_LOAD }).map((_, i) => (
+            <ProductSkeleton key={i} />
+          ))}
       </div>
 
-      {/* Infinite Scroll Trigger */}
-      {visibleCount < filteredProducts.length && <div ref={loaderRef} className="h-12 mt-10" />}
+      {/* SCROLL TRIGGER */}
+      {visibleCount < filteredProducts.length && (
+        <div ref={loaderRef} className="h-12" />
+      )}
     </div>
   );
 }

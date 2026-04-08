@@ -1,4 +1,4 @@
-// src/context/ProductContext.js
+
 import { createContext } from "react";
 
 const ProductContext = createContext({

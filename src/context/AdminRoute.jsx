@@ -1,4 +1,3 @@
-// src/context/AdminRoute.jsx
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./useAuth.js";
 

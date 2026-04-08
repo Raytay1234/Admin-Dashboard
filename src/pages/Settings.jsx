@@ -1,4 +1,3 @@
-// src/pages/Settings.jsx
 import { useContext, useState } from "react";
 // ✅ Correct
 import { useAuth } from "../context/useAuth.js";
