@@ -23,7 +23,7 @@ export default function Login({ setUser }) {
     const users = [
       {
         name: "Admin User",
-        email: "ryanmugi2004@gmail.com",
+        email: "admin@gmail.com",
         password: "admin123",
         role: "admin",
       },
