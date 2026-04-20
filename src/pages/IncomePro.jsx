@@ -186,7 +186,7 @@ export default function IncomePro() {
           </p>
         </div>
 
-        <div className="relative">
+        <div className="relative z-50">
           <button
             onClick={() => setDownloadMenu(!downloadMenu)}
             className="px-4 py-2 bg-green-500 text-black rounded-lg"
@@ -195,7 +195,7 @@ export default function IncomePro() {
           </button>
 
           {downloadMenu && (
-            <div className="absolute right-0 mt-2 w-40 bg-gray-800 rounded shadow">
+            <div className="absolute right-0 mt-2 w-40 bg-gray-800 rounded shadow-lg z-50">
               {["csv", "json", "pdf"].map((t) => (
                 <button
                   key={t}
@@ -230,9 +230,8 @@ export default function IncomePro() {
               </h2>
 
               <div
-                className={`flex items-center gap-1 text-sm mt-1 ${
-                  positive ? "text-green-400" : "text-red-400"
-                }`}
+                className={`flex items-center gap-1 text-sm mt-1 ${positive ? "text-green-400" : "text-red-400"
+                  }`}
               >
                 {positive ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                 {Math.abs(growth).toFixed(1)}%
