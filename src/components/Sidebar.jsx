@@ -12,6 +12,7 @@ import {
   FaUserCircle,
   FaSignOutAlt,
   FaTicketAlt,
+  FaBullhorn,
 } from "react-icons/fa";
 import clsx from "clsx";
 import { useAuth } from "../context/useAuth.js";
@@ -24,16 +25,19 @@ export default function Sidebar() {
 
   const toggle = () => setOpen((p) => !p);
 
+  // -----------------------------
+  // MENUS
+  // -----------------------------
   const adminMenu = useMemo(
     () => [
       { label: "Dashboard", icon: FaHome, path: "/" },
       { label: "Products", icon: FaBoxOpen, path: "/products" },
       { label: "Customers", icon: FaUsers, path: "/customers" },
       { label: "Income", icon: FaDollarSign, path: "/income" },
-      { label: "Promote", icon: FaDollarSign, path: "/promote" },
+      { label: "Promote", icon: FaBullhorn, path: "/promote" },
       { label: "Orders", icon: FaShoppingCart, path: "/orders" },
       { label: "Tickets", icon: FaTicketAlt, path: "/tickets" },
-      {label:"reports", icon: FaHome, path:"/reports"}
+      { label: "Reports", icon: FaHome, path: "/reports" },
     ],
     []
   );
@@ -49,11 +53,17 @@ export default function Sidebar() {
     []
   );
 
+  // -----------------------------
+  // LOGOUT
+  // -----------------------------
   const handleLogout = () => {
-    logout();
-    navigate("/login");
+    logout(); // 🔥 state-driven logout (ProtectedRoute handles redirect)
+    navigate("/login", { replace: true }); // fallback safety
   };
 
+  // -----------------------------
+  // RENDER MENU
+  // -----------------------------
   const renderMenu = (menu) =>
     menu.map((item) => (
       <NavLink
@@ -78,9 +88,14 @@ export default function Sidebar() {
       </NavLink>
     ));
 
+  // -----------------------------
+  // PREVENT RENDER WHEN LOGGED OUT
+  // -----------------------------
+  if (!user) return null;
+
   return (
     <>
-      {/* Mobile Toggle */}
+      {/* MOBILE TOGGLE */}
       <button
         onClick={toggle}
         className="lg:hidden fixed top-4 left-4 z-50 p-3 rounded-xl shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-green-400"
@@ -88,7 +103,7 @@ export default function Sidebar() {
         {open ? <FaTimes size={22} /> : <FaBars size={22} />}
       </button>
 
-      {/* Overlay */}
+      {/* OVERLAY */}
       {open && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -96,12 +111,12 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <aside
         className={clsx(
           "fixed top-0 left-0 h-full w-64 z-50",
           "bg-white dark:bg-gray-900 border-r dark:border-gray-800",
-          "p-5 flex flex-col",
+          "p-5 flex flex-col justify-between",
           "transition-transform duration-300",
           open ? "translate-x-0" : "-translate-x-full",
           "lg:translate-x-0 lg:static"
@@ -109,7 +124,7 @@ export default function Sidebar() {
       >
         {/* TOP */}
         <div>
-          {/* Logo */}
+          {/* LOGO */}
           <div className="mb-6 text-center">
             <div className="w-16 h-16 mx-auto rounded-full overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
               <img src={logo} alt="Duka" className="w-full h-full object-cover" />
@@ -122,30 +137,31 @@ export default function Sidebar() {
             </p>
           </div>
 
-          {/* User Card */}
-          {user && (
-            <div
-              onClick={() => {
-                navigate("/profile");
-                setOpen(false);
-              }}
-              className="mb-6 flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 cursor-pointer hover:scale-[1.02] transition"
-            >
-              <img
-                src={user.avatar || `https://i.pravatar.cc/150?u=${user.email}`}
-                className="w-10 h-10 rounded-full border border-green-500"
-                alt="avatar"
-              />
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-gray-800 dark:text-white">
-                  {user.name}
-                </span>
-                <span className="text-xs text-gray-400 capitalize">
-                  {user.role || "user"}
-                </span>
-              </div>
+          {/* USER CARD */}
+          <div
+            onClick={() => {
+              navigate("/profile");
+              setOpen(false);
+            }}
+            className="mb-6 flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 cursor-pointer hover:scale-[1.02] transition"
+          >
+            <img
+              src={
+                user?.avatar ||
+                `https://i.pravatar.cc/150?u=${user?.email}`
+              }
+              className="w-10 h-10 rounded-full border border-green-500"
+              alt="avatar"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                {user?.name}
+              </span>
+              <span className="text-xs text-gray-400 capitalize">
+                {user?.role || "user"}
+              </span>
             </div>
-          )}
+          </div>
 
           {/* MENU */}
           <div className="space-y-1">
@@ -160,17 +176,13 @@ export default function Sidebar() {
         </div>
 
         {/* BOTTOM */}
-        <div className="mt-6">
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-500/10 transition"
-            >
-              <FaSignOutAlt />
-              Logout
-            </button>
-          )}
-        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-500/10 transition"
+        >
+          <FaSignOutAlt />
+          Logout
+        </button>
       </aside>
     </>
   );

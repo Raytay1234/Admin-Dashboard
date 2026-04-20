@@ -1,9 +1,11 @@
-// src/pages/Login.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
 
-export default function Login({ setUser }) {
+export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth(); // ✅ use context auth
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,7 +21,6 @@ export default function Login({ setUser }) {
       return;
     }
 
-    // Mock users database
     const users = [
       {
         name: "Admin User",
@@ -36,7 +37,9 @@ export default function Login({ setUser }) {
     ];
 
     const foundUser = users.find(
-      (u) => u.email === trimmedEmail && u.password === trimmedPassword
+      (u) =>
+        u.email === trimmedEmail &&
+        u.password === trimmedPassword
     );
 
     if (!foundUser) {
@@ -44,16 +47,13 @@ export default function Login({ setUser }) {
       return;
     }
 
-    // Save user to state & localStorage
-    setUser(foundUser);
-    localStorage.setItem("user", JSON.stringify(foundUser));
 
-    // Redirect based on role
-    if (foundUser.role === "admin") {
-      navigate("/"); 
-    } else {
-      navigate("/shop"); 
-    }
+    login(foundUser);
+
+
+    navigate(foundUser.role === "admin" ? "/" : "/shop", {
+      replace: true,
+    });
   };
 
   return (

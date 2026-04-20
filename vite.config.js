@@ -14,10 +14,10 @@ export default defineConfig({
 
   server: {
     proxy: {
-      "/api": {
-        target: "http://localhost:5000",
+      "/frankfurter": {
+        target: "https://api.frankfurter.app",
         changeOrigin: true,
-        secure: false,
+        rewrite: (path) => path.replace(/^\/frankfurter/, ""),
       },
     },
   },

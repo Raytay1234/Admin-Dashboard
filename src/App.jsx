@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/useAuth";
 
 // PAGES
 import Dashboard from "./pages/Dashboard.jsx";
@@ -31,56 +32,7 @@ import ProtectedRoute from "./context/ProtectedRoute.jsx";
 import OrderProvider from "./context/OrdersProvider.jsx";
 
 export default function App() {
-  // -----------------------------
-  // AUTH STATE (SAFE HYDRATION)
-  // -----------------------------
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("user");
-      if (saved) setUser(JSON.parse(saved));
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user");
-    }
-  }, [user]);
-
-  // -----------------------------
-  // REDIRECT ENGINE
-  // -----------------------------
-  const redirectByRole = useMemo(() => {
-    if (!user) return "/login";
-    return user.role === "admin" ? "/" : "/shop";
-  }, [user]);
-
-  const redirectLoggedIn = (component) => {
-    if (user) {
-      return <Navigate to={redirectByRole} replace />;
-    }
-    return component;
-  };
-
-  // -----------------------------
-  // LOADING GUARD
-  // -----------------------------
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
-        Loading...
-      </div>
-    );
-  }
+  const { user } = useAuth();
 
   return (
     <OrderProvider>
@@ -92,19 +44,19 @@ export default function App() {
 
         <Route
           path="/login"
-          element={redirectLoggedIn(<Login setUser={setUser} />)}
+          element={user ? <Navigate to="/" replace /> : <Login />}
         />
 
         <Route
           path="/signup"
-          element={redirectLoggedIn(<Signup setUser={setUser} />)}
+          element={user ? <Navigate to="/" replace /> : <Signup />}
         />
 
         {/* ───────── USER ───────── */}
         <Route
           path="/profile"
           element={
-            <ProtectedRoute user={user}>
+            <ProtectedRoute>
               <Layout><Profile /></Layout>
             </ProtectedRoute>
           }
@@ -113,7 +65,7 @@ export default function App() {
         <Route
           path="/orders"
           element={
-            <ProtectedRoute user={user}>
+            <ProtectedRoute>
               <Layout><Orders /></Layout>
             </ProtectedRoute>
           }
@@ -122,7 +74,7 @@ export default function App() {
         <Route
           path="/create-ticket"
           element={
-            <ProtectedRoute user={user}>
+            <ProtectedRoute>
               <Layout><CreateTicket /></Layout>
             </ProtectedRoute>
           }
@@ -131,7 +83,7 @@ export default function App() {
         <Route
           path="/tickets"
           element={
-            <ProtectedRoute user={user}>
+            <ProtectedRoute>
               <Layout><Tickets /></Layout>
             </ProtectedRoute>
           }
@@ -140,7 +92,7 @@ export default function App() {
         <Route
           path="/tickets/:id"
           element={
-            <ProtectedRoute user={user}>
+            <ProtectedRoute>
               <Layout><TicketDetails /></Layout>
             </ProtectedRoute>
           }
@@ -149,7 +101,7 @@ export default function App() {
         <Route
           path="/settings"
           element={
-            <ProtectedRoute user={user}>
+            <ProtectedRoute>
               <Layout><Settings /></Layout>
             </ProtectedRoute>
           }
@@ -158,7 +110,7 @@ export default function App() {
         <Route
           path="/help"
           element={
-            <ProtectedRoute user={user}>
+            <ProtectedRoute>
               <Layout><Help /></Layout>
             </ProtectedRoute>
           }
@@ -168,7 +120,7 @@ export default function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Dashboard /></Layout>
             </ProtectedRoute>
           }
@@ -177,7 +129,7 @@ export default function App() {
         <Route
           path="/products"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Products /></Layout>
             </ProtectedRoute>
           }
@@ -186,7 +138,7 @@ export default function App() {
         <Route
           path="/customers"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Customers /></Layout>
             </ProtectedRoute>
           }
@@ -195,7 +147,7 @@ export default function App() {
         <Route
           path="/income"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Income /></Layout>
             </ProtectedRoute>
           }
@@ -204,7 +156,7 @@ export default function App() {
         <Route
           path="/admin/orders"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Orders /></Layout>
             </ProtectedRoute>
           }
@@ -213,7 +165,7 @@ export default function App() {
         <Route
           path="/comments"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Comments /></Layout>
             </ProtectedRoute>
           }
@@ -222,7 +174,7 @@ export default function App() {
         <Route
           path="/promote"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Promote /></Layout>
             </ProtectedRoute>
           }
@@ -231,7 +183,7 @@ export default function App() {
         <Route
           path="/admin/tickets"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><TicketDashboard /></Layout>
             </ProtectedRoute>
           }
@@ -240,17 +192,16 @@ export default function App() {
         <Route
           path="/reports"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><Reports /></Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* 🔥 DRILL-DOWN PAGE (NEW) */}
         <Route
           path="/reports/category/:category"
           element={
-            <ProtectedRoute user={user} adminOnly>
+            <ProtectedRoute adminOnly>
               <Layout><CategoryDetails /></Layout>
             </ProtectedRoute>
           }
@@ -259,7 +210,7 @@ export default function App() {
         {/* ───────── FALLBACK ───────── */}
         <Route
           path="*"
-          element={<Navigate to={redirectByRole} replace />}
+          element={<Navigate to={user ? "/" : "/login"} replace />}
         />
 
       </Routes>

@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth.js";
 
-export default function Signup({ setUser }) {
+export default function Signup() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
 
-  const ADMIN_EMAIL = "ryanmugi2004@gmail.com"; // Example admin email
+  const ADMIN_EMAIL = "ryanmugi2004@gmail.com";
 
   const handleSignup = (e) => {
     e.preventDefault();
@@ -24,77 +27,82 @@ export default function Signup({ setUser }) {
       return;
     }
 
-    // Determine role
-    const role = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? "admin" : "user";
+    const role =
+      email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+        ? "admin"
+        : "user";
 
-    const user = { name, email, role, joinedAt: new Date().toISOString() };
-    setUser(user);
+    const user = {
+      name,
+      email,
+      role,
+      joinedAt: new Date().toISOString(),
+    };
+
+    // ✅ Use context login instead of setUser
+    login(user);
+
     localStorage.setItem("user", JSON.stringify(user));
 
-    navigate("/"); // redirect to home/dashboard
+    navigate("/");
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
-      <form
-        onSubmit={handleSignup}
-        className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm flex flex-col gap-4"
-      >
-        <h1 className="text-2xl font-bold text-center">Sign Up</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-lg">
+        <h1 className="text-2xl font-bold text-green-500 mb-6 text-center">
+          Sign Up
+        </h1>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded text-sm text-center">
+          <div className="bg-red-900/40 text-red-400 p-2 rounded mb-4 text-sm text-center">
             {error}
           </div>
         )}
 
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          required
-          onChange={(e) => setName(e.target.value)}
-          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          required
-          onChange={(e) => setEmail(e.target.value)}
-          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          required
-          onChange={(e) => setPassword(e.target.value)}
-          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
-        />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirm}
-          required
-          onChange={(e) => setConfirm(e.target.value)}
-          className="p-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none"
-        />
+        <form onSubmit={handleSignup} className="flex flex-col gap-4">
+          <input
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="p-2 rounded bg-gray-700 text-white focus:ring-2 focus:ring-green-500"
+          />
 
-        <button
-          type="submit"
-          className="bg-red-600 text-white p-2 rounded hover:bg-red-700 transition"
-        >
-          Sign Up
-        </button>
+          <input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="p-2 rounded bg-gray-700 text-white focus:ring-2 focus:ring-green-500"
+          />
 
-        <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="p-2 rounded bg-gray-700 text-white focus:ring-2 focus:ring-green-500"
+          />
+
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className="p-2 rounded bg-gray-700 text-white focus:ring-2 focus:ring-green-500"
+          />
+
+          <button className="bg-green-500 hover:bg-green-600 text-black font-semibold py-2 rounded">
+            Sign Up
+          </button>
+        </form>
+
+        <p className="text-gray-400 text-sm mt-4 text-center">
           Already have an account?{" "}
-          <Link to="/login" className="text-red-600 hover:underline">
+          <Link to="/login" className="text-green-500 hover:underline">
             Login
           </Link>
         </p>
-      </form>
+      </div>
     </div>
   );
 }
